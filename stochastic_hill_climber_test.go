@@ -1,4 +1,4 @@
-package neurgo
+package neurvolve
 
 import (
 	"encoding/json"

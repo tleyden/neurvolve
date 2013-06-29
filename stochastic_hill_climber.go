@@ -1,4 +1,4 @@
-package neurgo
+package neurvolve
 
 import (
 	ng "github.com/tleyden/neurgo"
