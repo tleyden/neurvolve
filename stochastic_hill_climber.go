@@ -2,6 +2,7 @@ package neurvolve
 
 import (
 	ng "github.com/tleyden/neurgo"
+	"log"
 	"math"
 	"math/rand"
 )
@@ -43,6 +44,7 @@ func (shc *StochasticHillClimber) Train(neuralNet *ng.NeuralNetwork, examples []
 		}
 
 		if ng.IntModuloProper(i, MAX_ITERATIONS_BEFORE_RESTART) {
+			log.Printf("** restart hill climber")
 			shc.resetParametersToRandom(fittestNeuralNet)
 		}
 
