@@ -36,6 +36,7 @@ func xnorNetworkUntrained() *ng.NeuralNetwork {
 	randBias_2 := ng.RandomInRange(-1*math.Pi, math.Pi)
 	randBias_3 := ng.RandomInRange(-1*math.Pi, math.Pi)
 
+	// TODO: use util.randomWeights
 	randWeights_1 := []float64{
 		ng.RandomInRange(-1*math.Pi, math.Pi),
 		ng.RandomInRange(-1*math.Pi, math.Pi),

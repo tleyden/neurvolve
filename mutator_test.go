@@ -39,11 +39,9 @@ func BasicNetwork() *ng.NeuralNetwork {
 }
 
 func TestAddNeuron(t *testing.T) {
-
 	neuralNet := BasicNetwork()
 	nnCopy := AddNeuron(neuralNet)
-	assert.NotEquals(t, len(neuralNet.Neurons()), len(nnCopy.Neurons()))
-
+	assert.Equals(t, len(neuralNet.Neurons())+1, len(nnCopy.Neurons()))
 }
 
 func TestAddInlink(t *testing.T) {
