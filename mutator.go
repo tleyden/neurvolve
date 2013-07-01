@@ -6,7 +6,9 @@ import (
 	"math"
 )
 
-func AddNeuron(neuralNet *ng.NeuralNetwork) *ng.NeuralNetwork {
+// Add a new neuron to an existing layer.  Connect all nodes in previous
+// layer to this node.  Connect this node to all nodes in next layer.
+func AddNeuronExistingLayer(neuralNet *ng.NeuralNetwork) *ng.NeuralNetwork {
 
 	neuralNet = neuralNet.Copy()
 
@@ -19,15 +21,9 @@ func AddNeuron(neuralNet *ng.NeuralNetwork) *ng.NeuralNetwork {
 	prevLayerIndex := targetLayerIndex - 1
 	nextLayerIndex := targetLayerIndex + 1
 
-	// choose a random node (sensor, neuron) in the previous
-	// layer (L-1), call this N0
 	prevLayerNodes := neuralNet.NodesInLayer(prevLayerIndex)
-	prevLayerNode := randomNodeFrom(prevLayerNodes)
 
-	// choose a random node (neuron, actutor) in the next
-	// layer (L+1), call this N1
 	nextLayerNodes := neuralNet.NodesInLayer(nextLayerIndex)
-	nextLayerNode := randomNodeFrom(nextLayerNodes)
 
 	// create random Bias
 	randBias := ng.RandomInRange(-1*math.Pi, math.Pi)
@@ -47,17 +43,24 @@ func AddNeuron(neuralNet *ng.NeuralNetwork) *ng.NeuralNetwork {
 	// TODO: how many??
 	inboundWeights := randomWeights(inboundWeightVectorLen)
 
-	// make connection from N0 -> N
-	prevLayerNode.ConnectBidirectionalWeighted(neuron, inboundWeights)
+	// make connection from prev layer nodes to this node
+	for _, prevLayerNode := range prevLayerNodes {
+		prevLayerNode.ConnectBidirectionalWeighted(neuron, inboundWeights)
+	}
 
-	// make connection from N -> N1  (if N1 == actuator, unweighted cxn)
-	if nextLayerNode.IsNeuron() {
-		weightVectorLen := discoverWeightVectorLen(nextLayerNode)
-		weights := randomWeights(weightVectorLen)
-		neuron.ConnectBidirectionalWeighted(nextLayerNode, weights)
+	// make connection from this node to next layer nodes  (if N1 == actuator, unweighted cxn)
+	randomNextLayerNode := randomNodeFrom(nextLayerNodes)
+	if randomNextLayerNode.IsNeuron() {
+		for _, nextLayerNode := range nextLayerNodes {
+			weightVectorLen := discoverWeightVectorLen(nextLayerNode)
+			weights := randomWeights(weightVectorLen)
+			neuron.ConnectBidirectionalWeighted(nextLayerNode, weights)
+		}
 
 	} else {
-		neuron.ConnectBidirectional(nextLayerNode)
+		for _, nextLayerNode := range nextLayerNodes {
+			neuron.ConnectBidirectional(nextLayerNode)
+		}
 	}
 
 	return neuralNet

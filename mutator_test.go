@@ -38,9 +38,9 @@ func BasicNetwork() *ng.NeuralNetwork {
 	return neuralNet
 }
 
-func TestAddNeuron(t *testing.T) {
+func TestAddNeuronExistingLayer(t *testing.T) {
 	neuralNet := BasicNetwork()
-	nnCopy := AddNeuron(neuralNet)
+	nnCopy := AddNeuronExistingLayer(neuralNet)
 	assert.Equals(t, len(neuralNet.Neurons())+1, len(nnCopy.Neurons()))
 }
 
