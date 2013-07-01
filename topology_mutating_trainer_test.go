@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-func DisabledTestTopologyMutatingTrainer(t *testing.T) {
+func TestTopologyMutatingTrainer(t *testing.T) {
 
 	rand.Seed(time.Now().UTC().UnixNano())
 
@@ -29,6 +29,7 @@ func DisabledTestTopologyMutatingTrainer(t *testing.T) {
 		FitnessThreshold:           ng.FITNESS_THRESHOLD,
 		MaxAttempts:                25,
 		MaxIterationsBeforeRestart: 5,
+		NumOutputLayerNodes:        1,
 	}
 	neuralNetTrained, succeeded := tmt.Train(neuralNet, examples)
 	if succeeded {

@@ -9,6 +9,7 @@ type TopologyMutatingTrainer struct {
 	FitnessThreshold           float64
 	MaxIterationsBeforeRestart int
 	MaxAttempts                int
+	NumOutputLayerNodes        int
 }
 
 func (tmt *TopologyMutatingTrainer) Train(neuralNet *ng.NeuralNetwork, examples []*ng.TrainingSample) (fittestNeuralNet *ng.NeuralNetwork, succeeded bool) {
@@ -28,14 +29,31 @@ func (tmt *TopologyMutatingTrainer) Train(neuralNet *ng.NeuralNetwork, examples 
 
 	for i := 0; ; i++ {
 
-		log.Printf("mutating neural net.  i/max: %d/%d", i, tmt.MaxAttempts)
+		log.Printf("before mutate.  i/max: %d/%d", i, tmt.MaxAttempts)
+		printTopology(currentNeuralNet)
 		// mutate the network: either add a node to existing layer, or new layer
 		randInt := ng.RandomIntInRange(0, 2)
 		if randInt == 0 {
-			currentNeuralNet = AddNeuronNewRightLayer(currentNeuralNet)
+			for {
+				modifiedNeuralNet := AddNeuronNewRightLayer(currentNeuralNet)
+				if tmt.checkConstraints(modifiedNeuralNet) {
+					currentNeuralNet = modifiedNeuralNet
+					break
+				}
+			}
+
 		} else {
-			currentNeuralNet = AddNeuronExistingLayer(currentNeuralNet)
+			for {
+				modifiedNeuralNet := AddNeuronExistingLayer(currentNeuralNet)
+				if tmt.checkConstraints(modifiedNeuralNet) {
+					currentNeuralNet = modifiedNeuralNet
+					break
+				}
+			}
 		}
+
+		log.Printf("after mutate.")
+		printTopology(currentNeuralNet)
 
 		// memetic step: call stochastic hill climber and see if it can solve it
 		shc := &StochasticHillClimber{
@@ -64,4 +82,11 @@ func (tmt *TopologyMutatingTrainer) Train(neuralNet *ng.NeuralNetwork, examples 
 
 	return
 
+}
+
+func (tmt *TopologyMutatingTrainer) checkConstraints(neuralNet *ng.NeuralNetwork) bool {
+	numLayers := neuralNet.NumLayers()
+	outputLayerIndex := numLayers - 2
+	outputLayerNodes := neuralNet.NodesInLayer(outputLayerIndex)
+	return len(outputLayerNodes) == tmt.NumOutputLayerNodes
 }
