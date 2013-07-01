@@ -15,8 +15,6 @@ type StochasticHillClimber struct {
 
 func (shc *StochasticHillClimber) Train(neuralNet *ng.NeuralNetwork, examples []*ng.TrainingSample) (fittestNeuralNet *ng.NeuralNetwork, succeeded bool) {
 
-	// originalNet := neuralNet.Copy()
-
 	fittestNeuralNet = neuralNet
 
 	// Apply NN to problem and save fitness
