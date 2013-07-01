@@ -126,7 +126,7 @@ func randomNeuronLayerIndex(numLayers int) int {
 		log.Panicf("Expecting at least 3 layers, got: %d", numLayers)
 	}
 	startIndex := 1           // ignore sensor layer
-	endIndex := numLayers - 2 // ignore actuator layer
+	endIndex := numLayers - 1 // ignore actuator layer
 	return ng.RandomIntInRange(startIndex, endIndex)
 }
 
@@ -134,7 +134,7 @@ func randomNodeFrom(nodes []*ng.Node) *ng.Node {
 	if len(nodes) == 0 {
 		log.Panicf("Expecting non-empty list of nodes")
 	}
-	randomIndex := ng.RandomIntInRange(0, len(nodes)-1)
+	randomIndex := ng.RandomIntInRange(0, len(nodes))
 	return nodes[randomIndex]
 }
 
