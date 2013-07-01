@@ -93,6 +93,8 @@ func xnorNetworkUntrained() *ng.NeuralNetwork {
 
 func TestWeightTraining(t *testing.T) {
 
+	ng.SeedRandom()
+
 	// training set -- todo: examples := ng.XnorTrainingSamples()
 	examples := []*ng.TrainingSample{
 		// TODO: how to wrap this?
