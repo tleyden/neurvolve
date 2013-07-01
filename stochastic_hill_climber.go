@@ -8,21 +8,23 @@ import (
 )
 
 type StochasticHillClimber struct {
-	currentCandidate *ng.NeuralNetwork
-	currentOptimal   *ng.NeuralNetwork
+	FitnessThreshold           float64
+	MaxIterationsBeforeRestart int
+	MaxAttempts                int
 }
 
-const MAX_ITERATIONS_BEFORE_RESTART = 10000
+func (shc *StochasticHillClimber) Train(neuralNet *ng.NeuralNetwork, examples []*ng.TrainingSample) (fittestNeuralNet *ng.NeuralNetwork, succeeded bool) {
 
-func (shc *StochasticHillClimber) Train(neuralNet *ng.NeuralNetwork, examples []*ng.TrainingSample) *ng.NeuralNetwork {
+	// originalNet := neuralNet.Copy()
 
-	fittestNeuralNet := neuralNet
+	fittestNeuralNet = neuralNet
 
 	// Apply NN to problem and save fitness
 	fitness := fittestNeuralNet.Fitness(examples)
 
-	if fitness > ng.FITNESS_THRESHOLD {
-		return fittestNeuralNet
+	if fitness > shc.FitnessThreshold {
+		succeeded = true
+		return
 	}
 
 	for i := 0; ; i++ {
@@ -41,20 +43,28 @@ func (shc *StochasticHillClimber) Train(neuralNet *ng.NeuralNetwork, examples []
 		if candidateFitness > fitness {
 			fittestNeuralNet = candidateNeuralNet
 			fitness = candidateFitness
+			log.Printf("fitness: %f.  attempt #:%d", fitness, i)
 		}
 
-		if ng.IntModuloProper(i, MAX_ITERATIONS_BEFORE_RESTART) {
-			log.Printf("** restart hill climber")
+		if ng.IntModuloProper(i, shc.MaxIterationsBeforeRestart) {
+			log.Printf("** restart hill climber.  fitness: %f i/max: %d/%d", candidateFitness, i, shc.MaxAttempts)
 			shc.resetParametersToRandom(fittestNeuralNet)
+			// fittestNeuralNet = originalNet.Copy()
 		}
 
-		if candidateFitness > ng.FITNESS_THRESHOLD {
+		if candidateFitness > shc.FitnessThreshold {
+			succeeded = true
+			break
+		}
+
+		if i >= shc.MaxAttempts {
+			succeeded = false
 			break
 		}
 
 	}
 
-	return fittestNeuralNet
+	return
 
 }
 

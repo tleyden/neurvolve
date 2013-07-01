@@ -93,7 +93,7 @@ func xnorNetworkUntrained() *ng.NeuralNetwork {
 
 func TestWeightTraining(t *testing.T) {
 
-	// training set
+	// training set -- todo: examples := ng.XnorTrainingSamples()
 	examples := []*ng.TrainingSample{
 		// TODO: how to wrap this?
 		{SampleInputs: [][]float64{[]float64{0, 1}}, ExpectedOutputs: [][]float64{[]float64{0}}},
@@ -108,8 +108,14 @@ func TestWeightTraining(t *testing.T) {
 	verified := neuralNet.Verify(examples)
 	assert.False(t, verified)
 
-	shc := new(StochasticHillClimber)
-	neuralNetTrained := shc.Train(neuralNet, examples)
+	shc := &StochasticHillClimber{
+		FitnessThreshold:           ng.FITNESS_THRESHOLD,
+		MaxIterationsBeforeRestart: 100000,
+		MaxAttempts:                4000000,
+	}
+	neuralNetTrained, succeeded := shc.Train(neuralNet, examples)
+	assert.True(t, succeeded)
+
 	// verify it can now solve the training set
 	verified = neuralNetTrained.Verify(examples)
 	assert.True(t, verified)
