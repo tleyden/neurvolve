@@ -3,6 +3,7 @@ package neurvolve
 import (
 	"github.com/couchbaselabs/go.assert"
 	ng "github.com/tleyden/neurgo"
+	"log"
 	"math"
 	"testing"
 )
@@ -38,9 +39,21 @@ func BasicNetwork() *ng.NeuralNetwork {
 	return neuralNet
 }
 
+func TestAddNeuronNewRightLayer(t *testing.T) {
+	neuralNet := BasicNetwork()
+	nnCopy := AddNeuronNewRightLayer(neuralNet)
+	log.Printf("got nncopy")
+	origLayers := neuralNet.NumLayers()
+	log.Printf("origLayers: %d", origLayers)
+	copyLayers := nnCopy.NumLayers()
+	log.Printf("copyLayers: %d", copyLayers)
+	assert.Equals(t, origLayers+1, copyLayers)
+}
+
 func TestAddNeuronExistingLayer(t *testing.T) {
 	neuralNet := BasicNetwork()
 	nnCopy := AddNeuronExistingLayer(neuralNet)
+
 	assert.Equals(t, len(neuralNet.Neurons())+1, len(nnCopy.Neurons()))
 }
 
