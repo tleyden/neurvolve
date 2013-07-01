@@ -1,8 +1,6 @@
 package neurvolve
 
 import (
-	"encoding/json"
-	"fmt"
 	ng "github.com/tleyden/neurgo"
 	"log"
 	"math"
@@ -20,7 +18,6 @@ func AddNeuronNewRightLayer(neuralNet *ng.NeuralNetwork) *ng.NeuralNetwork {
 	numLayers := neuralNet.NumLayers()
 
 	leftLayerIndex := randomNeuronLayerIndex(numLayers)
-	log.Printf("leftLayerIndex: %d", leftLayerIndex)
 
 	rightLayerIndex := leftLayerIndex + 1
 	rightLayerNodes := neuralNet.NodesInLayer(rightLayerIndex)
@@ -37,9 +34,7 @@ func AddNeuronNewRightLayer(neuralNet *ng.NeuralNetwork) *ng.NeuralNetwork {
 	// currently connected to, and connect them to the new neuron
 	leftLayerNodes := neuralNet.NodesInLayer(leftLayerIndex)
 	for _, leftLayerNode := range leftLayerNodes {
-		log.Printf("DisconnectAllBidirectional()")
 		leftLayerNode.DisconnectAllBidirectional()
-		log.Printf("/DisconnectAllBidirectional()")
 	}
 
 	for _, leftLayerNode := range leftLayerNodes {
@@ -47,30 +42,19 @@ func AddNeuronNewRightLayer(neuralNet *ng.NeuralNetwork) *ng.NeuralNetwork {
 		// neurons except input layer neurons which may get larger input
 		// vectors from sensors.
 		weights := randomWeights(1)
-		log.Printf("leftLayerNode.ConnectBidirectionalWeighted()")
 		leftLayerNode.ConnectBidirectionalWeighted(neuron, weights)
-		log.Printf("/leftLayerNode.ConnectBidirectionalWeighted()")
 	}
 
 	// connect newNeuron to all nodes in rightLayer
 	for _, rightLayerNode := range rightLayerNodes {
 		if rightLayerNode.IsNeuron() {
 			weights := randomWeights(1)
-			log.Printf("neuron.ConnectBidirectionalWeighted()")
 			neuron.ConnectBidirectionalWeighted(rightLayerNode, weights)
-			log.Printf("/neuron.ConnectBidirectionalWeighted()")
 		} else {
-			log.Printf("neuron.ConnectBidirectional()")
 			neuron.ConnectBidirectional(rightLayerNode)
-			log.Printf("/neuron.ConnectBidirectional()")
 		}
 	}
 
-	nnJson, _ := json.Marshal(neuralNet)
-	nnJsonString := fmt.Sprintf("%s", nnJson)
-	log.Printf("nn: %v", nnJsonString)
-
-	log.Printf("return neuralNet")
 	return neuralNet
 }
 
@@ -130,10 +114,6 @@ func AddNeuronExistingLayer(neuralNet *ng.NeuralNetwork) *ng.NeuralNetwork {
 			neuron.ConnectBidirectional(nextLayerNode)
 		}
 	}
-
-	nnJson, _ := json.Marshal(neuralNet)
-	nnJsonString := fmt.Sprintf("%s", nnJson)
-	log.Printf("nn: %v", nnJsonString)
 
 	return neuralNet
 
