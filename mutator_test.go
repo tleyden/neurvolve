@@ -76,16 +76,12 @@ func TestGenerateXnorTopology(t *testing.T) {
 		// mutate the network: either add a node to existing layer, or new layer
 		randInt := ng.RandomIntInRange(0, 2)
 		if randInt == 0 {
-			log.Printf("before AddNeuronNewRightLayer, numNeurons: %d", len(neuralNet.Neurons()))
 			neuralNet = AddNeuronNewRightLayer(neuralNet)
-			log.Printf("after AddNeuronNewRightLayer, numNeurons: %d", len(neuralNet.Neurons()))
 		} else {
-			log.Printf("before AddNeuronExistingLayer, numNeurons: %d", len(neuralNet.Neurons()))
-			log.Printf("before AddNeuronExistingLayer, numLayers %d", neuralNet.NumLayers())
 			neuralNet = AddNeuronExistingLayer(neuralNet)
-			log.Printf("after AddNeuronExistingLayer, numNeurons: %d", len(neuralNet.Neurons()))
-			log.Printf("after AddNeuronExistingLayer, numLayers %d", neuralNet.NumLayers())
 		}
+
+		printTopology(neuralNet)
 
 		nodesByLayer := neuralNet.NodesByLayer()
 		numLayer1 := len(nodesByLayer[1])
