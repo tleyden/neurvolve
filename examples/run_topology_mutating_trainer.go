@@ -1,17 +1,20 @@
-package neurvolve
+package main
 
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/couchbaselabs/go.assert"
 	ng "github.com/tleyden/neurgo"
+	"github.com/tleyden/neurvolve"
 	"log"
 	"math/rand"
-	"testing"
 	"time"
 )
 
-func TestTopologyMutatingTrainer(t *testing.T) {
+func main() {
+	TestTopologyMutatingTrainer()
+}
+
+func TestTopologyMutatingTrainer() {
 
 	rand.Seed(time.Now().UTC().UnixNano())
 
@@ -19,13 +22,15 @@ func TestTopologyMutatingTrainer(t *testing.T) {
 	examples := ng.XnorTrainingSamples()
 
 	// create netwwork with topology capable of solving XNOR
-	neuralNet := BasicNetwork()
+	neuralNet := neurvolve.BasicNetwork()
 
 	// verify it can not yet solve the training set (since training would be useless in that case)
 	verified := neuralNet.Verify(examples)
-	assert.False(t, verified)
+	if verified {
+		panic("neural net already trained, nothing to do")
+	}
 
-	tmt := &TopologyMutatingTrainer{
+	tmt := &neurvolve.TopologyMutatingTrainer{
 		FitnessThreshold:           ng.FITNESS_THRESHOLD,
 		MaxAttempts:                25,
 		MaxIterationsBeforeRestart: 5,
@@ -37,10 +42,14 @@ func TestTopologyMutatingTrainer(t *testing.T) {
 		nnJsonString := fmt.Sprintf("%s", nnJson)
 		log.Printf("Successfully trained net: %v", nnJsonString)
 	}
-	assert.True(t, succeeded)
+	if !succeeded {
+		panic("failed to train neural net")
+	}
 
 	// verify it can now solve the training set
 	verified = neuralNetTrained.Verify(examples)
-	assert.True(t, verified)
+	if !verified {
+		panic("failed to verify neural net")
+	}
 
 }
