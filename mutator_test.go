@@ -6,7 +6,6 @@ import (
 	"github.com/couchbaselabs/go.assert"
 	ng "github.com/tleyden/neurgo"
 	"log"
-	"math"
 	"testing"
 )
 

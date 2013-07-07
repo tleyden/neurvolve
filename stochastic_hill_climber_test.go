@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/couchbaselabs/go.assert"
 	ng "github.com/tleyden/neurgo"
-	"math"
 	"testing"
 )
 
