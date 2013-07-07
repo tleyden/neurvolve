@@ -10,11 +10,7 @@ import (
 	"time"
 )
 
-func main() {
-	TestTopologyMutatingTrainer()
-}
-
-func TestTopologyMutatingTrainer() {
+func RunTopologyMutatingTrainer() {
 
 	rand.Seed(time.Now().UTC().UnixNano())
 
