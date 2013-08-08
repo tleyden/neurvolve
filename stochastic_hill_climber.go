@@ -13,9 +13,9 @@ type StochasticHillClimber struct {
 	MaxAttempts                int
 }
 
-func (shc *StochasticHillClimber) Train(neuralNet *ng.NeuralNetwork, examples []*ng.TrainingSample) (fittestNeuralNet *ng.NeuralNetwork, succeeded bool) {
+func (shc *StochasticHillClimber) Train(cortex *ng.Cortex, examples []*ng.TrainingSample) (fittestNeuralNet *ng.Cortex, succeeded bool) {
 
-	fittestNeuralNet = neuralNet
+	fittestNeuralNet = cortex
 
 	// Apply NN to problem and save fitness
 	fitness := fittestNeuralNet.Fitness(examples)
@@ -72,10 +72,10 @@ func (shc *StochasticHillClimber) Train(neuralNet *ng.NeuralNetwork, examples []
 //    with probability of 1/sqrt(parameters_size)
 // 3. The intensity of the parameter perturbation will chosen with uniform distribution
 //    of -pi and pi
-func (shc *StochasticHillClimber) perturbParameters(neuralNet *ng.NeuralNetwork) {
+func (shc *StochasticHillClimber) perturbParameters(cortex *ng.Cortex) {
 
 	// pick the neurons to perturb (at least one)
-	neurons := shc.chooseNeuronsToPerturb(neuralNet)
+	neurons := shc.chooseNeuronsToPerturb(cortex)
 
 	for _, neuron := range neurons {
 		shc.perturbNeuron(neuron)
@@ -83,31 +83,31 @@ func (shc *StochasticHillClimber) perturbParameters(neuralNet *ng.NeuralNetwork)
 
 }
 
-func (shc *StochasticHillClimber) resetParametersToRandom(neuralNet *ng.NeuralNetwork) {
+func (shc *StochasticHillClimber) resetParametersToRandom(cortex *ng.Cortex) {
 
-	neurons := neuralNet.Neurons()
+	neurons := cortex.Neurons
 	for _, neuronNode := range neurons {
-		for _, cxn := range neuronNode.Inbound() {
-			for j, _ := range cxn.Weights() {
-				cxn.Weights()[j] = ng.RandomInRange(-1*math.Pi, math.Pi)
+		for _, cxn := range neuronNode.Inbound {
+			for j, _ := range cxn.Weights {
+				cxn.Weights[j] = ng.RandomInRange(-1*math.Pi, math.Pi)
 			}
 		}
-		neuronNode.Processor().SetBias(ng.RandomInRange(-1*math.Pi, math.Pi))
+		neuronNode.Bias = ng.RandomInRange(-1*math.Pi, math.Pi)
 	}
 
 }
 
-func (shc *StochasticHillClimber) chooseNeuronsToPerturb(neuralNet *ng.NeuralNetwork) []*ng.Node {
+func (shc *StochasticHillClimber) chooseNeuronsToPerturb(cortex *ng.Cortex) []*ng.Neuron {
 
-	neuronsToPerturb := make([]*ng.Node, 0)
+	neuronsToPerturb := make([]*ng.Neuron, 0)
 
 	// choose some random neurons to perturb.  we need at least one, so
 	// keep looping until we've chosen at least one
 	didChooseNeuron := false
 	for {
 
-		probability := shc.nodePerturbProbability(neuralNet)
-		neurons := neuralNet.Neurons()
+		probability := shc.nodePerturbProbability(cortex)
+		neurons := cortex.Neurons
 		for _, neuronNode := range neurons {
 			if rand.Float64() < probability {
 				neuronsToPerturb = append(neuronsToPerturb, neuronNode)
@@ -124,24 +124,24 @@ func (shc *StochasticHillClimber) chooseNeuronsToPerturb(neuralNet *ng.NeuralNet
 
 }
 
-func (shc *StochasticHillClimber) nodePerturbProbability(neuralNet *ng.NeuralNetwork) float64 {
-	neurons := neuralNet.Neurons()
+func (shc *StochasticHillClimber) nodePerturbProbability(cortex *ng.Cortex) float64 {
+	neurons := cortex.Neurons
 	numNeurons := len(neurons)
 	return 1 / math.Sqrt(float64(numNeurons))
 }
 
-func (shc *StochasticHillClimber) perturbNeuron(node *ng.Node) {
+func (shc *StochasticHillClimber) perturbNeuron(neuron *ng.Neuron) {
 
-	probability := shc.parameterPerturbProbability(node)
+	probability := shc.parameterPerturbProbability(neuron)
 
 	// keep trying until we've perturbed at least one parameter
 	for {
 		didPerturbWeight := false
-		for _, cxn := range node.Inbound() {
+		for _, cxn := range neuron.Inbound {
 			didPerturbWeight = shc.possiblyPerturbConnection(cxn, probability)
 		}
 
-		didPerturbBias := shc.possiblyPerturbBias(node, probability)
+		didPerturbBias := shc.possiblyPerturbBias(neuron, probability)
 
 		// did we perturb anything?  if so, we're done
 		if didPerturbWeight || didPerturbBias {
@@ -152,21 +152,21 @@ func (shc *StochasticHillClimber) perturbNeuron(node *ng.Node) {
 
 }
 
-func (shc *StochasticHillClimber) parameterPerturbProbability(node *ng.Node) float64 {
+func (shc *StochasticHillClimber) parameterPerturbProbability(neuron *ng.Neuron) float64 {
 	numWeights := 0
-	for _, connection := range node.Inbound() {
-		numWeights += len(connection.Weights())
+	for _, connection := range neuron.Inbound {
+		numWeights += len(connection.Weights)
 	}
 	return 1 / math.Sqrt(float64(numWeights))
 }
 
-func (shc *StochasticHillClimber) possiblyPerturbConnection(cxn *ng.Connection, probability float64) bool {
+func (shc *StochasticHillClimber) possiblyPerturbConnection(cxn *ng.InboundConnection, probability float64) bool {
 
 	didPerturb := false
-	for j, weight := range cxn.Weights() {
+	for j, weight := range cxn.Weights {
 		if rand.Float64() < probability {
 			perturbedWeight := shc.perturbParameter(weight)
-			cxn.Weights()[j] = perturbedWeight
+			cxn.Weights[j] = perturbedWeight
 			didPerturb = true
 		}
 	}
@@ -174,13 +174,12 @@ func (shc *StochasticHillClimber) possiblyPerturbConnection(cxn *ng.Connection, 
 
 }
 
-func (shc *StochasticHillClimber) possiblyPerturbBias(node *ng.Node, probability float64) bool {
+func (shc *StochasticHillClimber) possiblyPerturbBias(neuron *ng.Neuron, probability float64) bool {
 	didPerturb := false
-	hasBias := node.Processor().HasBias()
-	if hasBias && rand.Float64() < probability {
-		bias := node.Processor().BiasValue()
+	if rand.Float64() < probability {
+		bias := neuron.Bias
 		perturbedBias := shc.perturbParameter(bias)
-		node.Processor().SetBias(perturbedBias)
+		neuron.Bias = perturbedBias
 		didPerturb = true
 	}
 	return didPerturb
