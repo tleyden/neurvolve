@@ -6,6 +6,28 @@ import (
 	"testing"
 )
 
+func verifyWeightsModified(neuron, neuronCopy *ng.Neuron) bool {
+	foundModifiedWeight := false
+
+	// make sure the weights have been modified for at least
+	// one of the inbound connections
+	originalInboundMap := neuron.InboundUUIDMap()
+	copyInboundMap := neuronCopy.InboundUUIDMap()
+
+	for uuid, connection := range originalInboundMap {
+		connectionCopy := copyInboundMap[uuid]
+		for i, weight := range connection.Weights {
+			weightCopy := connectionCopy.Weights[i]
+			if weight != weightCopy {
+				foundModifiedWeight = true
+				break
+			}
+		}
+	}
+	return foundModifiedWeight
+
+}
+
 func TestNeuronMutateWeights(t *testing.T) {
 
 	xnorCortex := ng.XnorCortex()
@@ -19,23 +41,32 @@ func TestNeuronMutateWeights(t *testing.T) {
 		didMutateWeights := NeuronMutateWeights(neuron)
 		if didMutateWeights == true {
 
-			// make sure the weights have been modified for at least
-			// one of the inbound connections
-			originalInboundMap := neuron.InboundUUIDMap()
-			copyInboundMap := neuronCopy.InboundUUIDMap()
-
-			for uuid, connection := range originalInboundMap {
-				connectionCopy := copyInboundMap[uuid]
-				for i, weight := range connection.Weights {
-					weightCopy := connectionCopy.Weights[i]
-					if weight != weightCopy {
-						foundModifiedWeight = true
-						break
-					}
-				}
-			}
+			foundModifiedWeight = verifyWeightsModified(neuron, neuronCopy)
 
 		}
+
+		if foundModifiedWeight == true {
+			break
+		}
+
+	}
+
+	assert.True(t, foundModifiedWeight == true)
+
+}
+
+func TestNeuronResetWeights(t *testing.T) {
+
+	xnorCortex := ng.XnorCortex()
+	neuron := xnorCortex.NeuronUUIDMap()["output-neuron"]
+	assert.True(t, neuron != nil)
+	neuronCopy := neuron.Copy()
+
+	foundModifiedWeight := false
+	for i := 0; i < 100; i++ {
+
+		NeuronResetWeights(neuron)
+		foundModifiedWeight = verifyWeightsModified(neuron, neuronCopy)
 
 		if foundModifiedWeight == true {
 			break

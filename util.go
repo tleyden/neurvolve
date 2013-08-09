@@ -16,3 +16,7 @@ func randomWeights(length int) []float64 {
 func RandomBias() float64 {
 	return ng.RandomInRange(-1*math.Pi, math.Pi)
 }
+
+func RandomWeight() float64 {
+	return ng.RandomInRange(-1*math.Pi, math.Pi)
+}

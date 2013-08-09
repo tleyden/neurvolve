@@ -16,6 +16,14 @@ func NeuronMutateWeights(neuron *ng.Neuron) bool {
 	return didPerturbAnyWeights
 }
 
+func NeuronResetWeights(neuron *ng.Neuron) {
+	for _, cxn := range neuron.Inbound {
+		for j, _ := range cxn.Weights {
+			cxn.Weights[j] = RandomWeight()
+		}
+	}
+}
+
 func NeuronAddBias(neuron *ng.Neuron) {
 	if neuron.Bias == 0 {
 		neuron.Bias = RandomBias()
