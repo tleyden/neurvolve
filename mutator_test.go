@@ -78,6 +78,20 @@ func TestNeuronResetWeights(t *testing.T) {
 
 }
 
+func TestNeuronMutateActivation(t *testing.T) {
+
+	ng.SeedRandom()
+	neuron := &ng.Neuron{
+		ActivationFunction: ng.EncodableSigmoid(),
+		NodeId:             ng.NewNeuronId("neuron", 0.25),
+		Bias:               10,
+	}
+	NeuronMutateActivation(neuron)
+	assert.True(t, neuron.ActivationFunction != nil)
+	assert.True(t, neuron.ActivationFunction.Name != ng.EncodableSigmoid().Name)
+
+}
+
 func TestNeuronRemoveBias(t *testing.T) {
 
 	neuron := &ng.Neuron{
