@@ -1,9 +1,15 @@
 package main
 
 import (
+	"fmt"
 	ng "github.com/tleyden/neurgo"
 	nv "github.com/tleyden/neurvolve"
 )
+
+func main() {
+	fmt.Println("RunWeightTraining")
+	RunWeightTraining()
+}
 
 func RunWeightTraining() {
 
