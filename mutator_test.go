@@ -6,7 +6,63 @@ import (
 	"testing"
 )
 
+func TestNeuronMutateWeights(t *testing.T) {
+
+	xnorCortex := ng.XnorCortex()
+	neuron := xnorCortex.NeuronUUIDMap()["output-neuron"]
+	assert.True(t, neuron != nil)
+	neuronCopy := neuron.Copy()
+
+	foundModifiedWeight := false
+	for i := 0; i < 100; i++ {
+
+		didMutateWeights := NeuronMutateWeights(neuron)
+		if didMutateWeights == true {
+
+			// make sure the weights have been modified for at least
+			// one of the inbound connections
+			originalInboundMap := neuron.InboundUUIDMap()
+			copyInboundMap := neuronCopy.InboundUUIDMap()
+
+			for uuid, connection := range originalInboundMap {
+				connectionCopy := copyInboundMap[uuid]
+				for i, weight := range connection.Weights {
+					weightCopy := connectionCopy.Weights[i]
+					if weight != weightCopy {
+						foundModifiedWeight = true
+						break
+					}
+				}
+			}
+
+		}
+
+		if foundModifiedWeight == true {
+			break
+		}
+
+	}
+
+	assert.True(t, foundModifiedWeight == true)
+
+}
+
+func TestNeuronRemoveBias(t *testing.T) {
+
+	neuron := &ng.Neuron{
+		ActivationFunction: ng.EncodableSigmoid(),
+		NodeId:             ng.NewNeuronId("neuron", 0.25),
+		Bias:               10,
+	}
+	neuron.Init()
+	NeuronRemoveBias(neuron)
+	assert.True(t, neuron.Bias == 0)
+
+}
+
 func TestNeuronAddBias(t *testing.T) {
+
+	// basic case where there is no bias
 
 	neuron := &ng.Neuron{
 		ActivationFunction: ng.EncodableSigmoid(),
@@ -14,8 +70,10 @@ func TestNeuronAddBias(t *testing.T) {
 	}
 	neuron.Init()
 
-	neuron = NeuronAddBias(neuron)
+	NeuronAddBias(neuron)
 	assert.True(t, neuron.Bias != 0)
+
+	// make sure it treats 0 bias as not having a bias
 
 	neuron = &ng.Neuron{
 		ActivationFunction: ng.EncodableSigmoid(),
@@ -24,8 +82,19 @@ func TestNeuronAddBias(t *testing.T) {
 	}
 	neuron.Init()
 
-	neuron = NeuronAddBias(neuron)
+	NeuronAddBias(neuron)
 	assert.True(t, neuron.Bias != 0)
+
+	// make sure it doesn't add a bias if there is an existing one
+
+	neuron = &ng.Neuron{
+		ActivationFunction: ng.EncodableSigmoid(),
+		NodeId:             ng.NewNeuronId("neuron", 0.25),
+		Bias:               10,
+	}
+	neuron.Init()
+	NeuronAddBias(neuron)
+	assert.True(t, neuron.Bias == 10)
 
 }
 

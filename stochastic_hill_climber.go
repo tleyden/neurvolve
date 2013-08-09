@@ -132,13 +132,13 @@ func (shc *StochasticHillClimber) nodePerturbProbability(cortex *ng.Cortex) floa
 
 func (shc *StochasticHillClimber) perturbNeuron(neuron *ng.Neuron) {
 
-	probability := shc.parameterPerturbProbability(neuron)
+	probability := parameterPerturbProbability(neuron)
 
 	// keep trying until we've perturbed at least one parameter
 	for {
 		didPerturbWeight := false
 		for _, cxn := range neuron.Inbound {
-			didPerturbWeight = shc.possiblyPerturbConnection(cxn, probability)
+			didPerturbWeight = possiblyPerturbConnection(cxn, probability)
 		}
 
 		didPerturbBias := shc.possiblyPerturbBias(neuron, probability)
@@ -152,7 +152,7 @@ func (shc *StochasticHillClimber) perturbNeuron(neuron *ng.Neuron) {
 
 }
 
-func (shc *StochasticHillClimber) parameterPerturbProbability(neuron *ng.Neuron) float64 {
+func parameterPerturbProbability(neuron *ng.Neuron) float64 {
 	numWeights := 0
 	for _, connection := range neuron.Inbound {
 		numWeights += len(connection.Weights)
@@ -160,12 +160,12 @@ func (shc *StochasticHillClimber) parameterPerturbProbability(neuron *ng.Neuron)
 	return 1 / math.Sqrt(float64(numWeights))
 }
 
-func (shc *StochasticHillClimber) possiblyPerturbConnection(cxn *ng.InboundConnection, probability float64) bool {
+func possiblyPerturbConnection(cxn *ng.InboundConnection, probability float64) bool {
 
 	didPerturb := false
 	for j, weight := range cxn.Weights {
 		if rand.Float64() < probability {
-			perturbedWeight := shc.perturbParameter(weight)
+			perturbedWeight := perturbParameter(weight)
 			cxn.Weights[j] = perturbedWeight
 			didPerturb = true
 		}
@@ -178,14 +178,14 @@ func (shc *StochasticHillClimber) possiblyPerturbBias(neuron *ng.Neuron, probabi
 	didPerturb := false
 	if rand.Float64() < probability {
 		bias := neuron.Bias
-		perturbedBias := shc.perturbParameter(bias)
+		perturbedBias := perturbParameter(bias)
 		neuron.Bias = perturbedBias
 		didPerturb = true
 	}
 	return didPerturb
 }
 
-func (shc *StochasticHillClimber) perturbParameter(parameter float64) float64 {
+func perturbParameter(parameter float64) float64 {
 
 	parameter += ng.RandomInRange(-1*math.Pi, math.Pi)
 	return parameter
