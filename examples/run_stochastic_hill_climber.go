@@ -55,21 +55,21 @@ func XnorCortexUntrained() *ng.Cortex {
 	actuatorNodeId := ng.NewActuatorId("actuator", 0.5)
 
 	hiddenNeuron1 := &ng.Neuron{
-		ActivationFunction: ng.Sigmoid,
+		ActivationFunction: ng.EncodableSigmoid(),
 		NodeId:             hiddenNeuron1NodeId,
 		Bias:               nv.RandomBias(),
 	}
 	hiddenNeuron1.Init()
 
 	hiddenNeuron2 := &ng.Neuron{
-		ActivationFunction: ng.Sigmoid,
+		ActivationFunction: ng.EncodableSigmoid(),
 		NodeId:             hiddenNeuron2NodeId,
 		Bias:               nv.RandomBias(),
 	}
 	hiddenNeuron2.Init()
 
 	outputNeuron := &ng.Neuron{
-		ActivationFunction: ng.Sigmoid,
+		ActivationFunction: ng.EncodableSigmoid(),
 		NodeId:             outputNeuronNodeIde,
 		Bias:               nv.RandomBias(),
 	}
