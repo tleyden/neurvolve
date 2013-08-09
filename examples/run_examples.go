@@ -7,6 +7,4 @@ import (
 func main() {
 	fmt.Println("RunWeightTraining")
 	RunWeightTraining()
-	fmt.Println("RunTopologyMutatingTrainer")
-	RunTopologyMutatingTrainer()
 }

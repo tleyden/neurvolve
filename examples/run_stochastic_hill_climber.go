@@ -2,7 +2,7 @@ package main
 
 import (
 	ng "github.com/tleyden/neurgo"
-	"github.com/tleyden/neurvolve"
+	nv "github.com/tleyden/neurvolve"
 )
 
 func RunWeightTraining() {
@@ -10,36 +10,101 @@ func RunWeightTraining() {
 	ng.SeedRandom()
 
 	// training set -- todo: examples := ng.XnorTrainingSamples()
-	examples := []*ng.TrainingSample{
-		// TODO: how to wrap this?
-		{SampleInputs: [][]float64{[]float64{0, 1}}, ExpectedOutputs: [][]float64{[]float64{0}}},
-		{SampleInputs: [][]float64{[]float64{1, 1}}, ExpectedOutputs: [][]float64{[]float64{1}}},
-		{SampleInputs: [][]float64{[]float64{1, 0}}, ExpectedOutputs: [][]float64{[]float64{0}}},
-		{SampleInputs: [][]float64{[]float64{0, 0}}, ExpectedOutputs: [][]float64{[]float64{1}}}}
+	examples := ng.XnorTrainingSamples()
 
 	// create netwwork with topology capable of solving XNOR
-	neuralNet := neurvolve.XnorNetworkUntrained()
+	cortex := XnorCortexUntrained()
 
 	// verify it can not yet solve the training set (since training would be useless in that case)
-	verified := neuralNet.Verify(examples)
+	verified := cortex.Verify(examples)
 	if verified {
 		panic("neural net already trained, nothing to do")
 	}
 
-	shc := &neurvolve.StochasticHillClimber{
+	shc := &nv.StochasticHillClimber{
 		FitnessThreshold:           ng.FITNESS_THRESHOLD,
 		MaxIterationsBeforeRestart: 100000,
 		MaxAttempts:                4000000,
 	}
-	neuralNetTrained, succeeded := shc.Train(neuralNet, examples)
+	cortexTrained, succeeded := shc.Train(cortex, examples)
 	if !succeeded {
 		panic("could not train neural net")
 	}
 
 	// verify it can now solve the training set
-	verified = neuralNetTrained.Verify(examples)
+	verified = cortexTrained.Verify(examples)
 	if !verified {
 		panic("could not verify neural net")
 	}
+
+}
+
+func XnorCortexUntrained() *ng.Cortex {
+
+	sensorNodeId := ng.NewSensorId("sensor", 0.0)
+	hiddenNeuron1NodeId := ng.NewNeuronId("hidden-neuron1", 0.25)
+	hiddenNeuron2NodeId := ng.NewNeuronId("hidden-neuron2", 0.25)
+	outputNeuronNodeIde := ng.NewNeuronId("output-neuron", 0.35)
+
+	actuatorNodeId := ng.NewActuatorId("actuator", 0.5)
+
+	hiddenNeuron1 := &ng.Neuron{
+		ActivationFunction: ng.Sigmoid,
+		NodeId:             hiddenNeuron1NodeId,
+		Bias:               nv.RandomBias(),
+	}
+	hiddenNeuron1.Init()
+
+	hiddenNeuron2 := &ng.Neuron{
+		ActivationFunction: ng.Sigmoid,
+		NodeId:             hiddenNeuron2NodeId,
+		Bias:               nv.RandomBias(),
+	}
+	hiddenNeuron2.Init()
+
+	outputNeuron := &ng.Neuron{
+		ActivationFunction: ng.Sigmoid,
+		NodeId:             outputNeuronNodeIde,
+		Bias:               nv.RandomBias(),
+	}
+	outputNeuron.Init()
+
+	sensor := &ng.Sensor{
+		NodeId:       sensorNodeId,
+		VectorLength: 2,
+	}
+	sensor.Init()
+
+	actuator := &ng.Actuator{
+		NodeId:       actuatorNodeId,
+		VectorLength: 1,
+	}
+	actuator.Init()
+
+	sensor.ConnectOutbound(hiddenNeuron1)
+	hiddenNeuron1.ConnectInboundWeighted(sensor, []float64{20, 20})
+
+	sensor.ConnectOutbound(hiddenNeuron2)
+	hiddenNeuron2.ConnectInboundWeighted(sensor, []float64{-20, -20})
+
+	hiddenNeuron1.ConnectOutbound(outputNeuron)
+	outputNeuron.ConnectInboundWeighted(hiddenNeuron1, []float64{20})
+
+	hiddenNeuron2.ConnectOutbound(outputNeuron)
+	outputNeuron.ConnectInboundWeighted(hiddenNeuron2, []float64{20})
+
+	outputNeuron.ConnectOutbound(actuator)
+	actuator.ConnectInbound(outputNeuron)
+
+	nodeId := ng.NewCortexId("cortex")
+
+	cortex := &ng.Cortex{
+		NodeId:    nodeId,
+		Sensors:   []*ng.Sensor{sensor},
+		Neurons:   []*ng.Neuron{hiddenNeuron1, hiddenNeuron2, outputNeuron},
+		Actuators: []*ng.Actuator{actuator},
+	}
+
+	return cortex
 
 }
