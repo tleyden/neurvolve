@@ -5,8 +5,9 @@ import (
 	"log"
 )
 
-func inboundConnectionCandidates(neuron *ng.Neuron, cortex *ng.Cortex) []*ng.NodeId {
+func inboundConnectionCandidates(neuron *ng.Neuron) []*ng.NodeId {
 
+	cortex := neuron.Cortex
 	neuronNodeIds := cortex.NeuronNodeIds()
 	sensorNodeIds := cortex.SensorNodeIds()
 	availableNodeIds := append(neuronNodeIds, sensorNodeIds...)
@@ -29,16 +30,18 @@ func inboundConnectionCandidates(neuron *ng.Neuron, cortex *ng.Cortex) []*ng.Nod
 
 }
 
-func NeuronAddInlinkRecurrent(neuron *ng.Neuron, cortex *ng.Cortex) *ng.InboundConnection {
+func NeuronAddInlinkRecurrent(neuron *ng.Neuron) *ng.InboundConnection {
 
 	// choose a random element B, where element B is another
 	// neuron or a sensor which is not already connected
 	// to this neuron.
-	availableNodeIds := inboundConnectionCandidates(neuron, cortex)
-	return neuronAddInlink(neuron, cortex, availableNodeIds)
+	availableNodeIds := inboundConnectionCandidates(neuron)
+	return neuronAddInlink(neuron, availableNodeIds)
 }
 
-func neuronAddInlink(neuron *ng.Neuron, cortex *ng.Cortex, availableNodeIds []*ng.NodeId) *ng.InboundConnection {
+func neuronAddInlink(neuron *ng.Neuron, availableNodeIds []*ng.NodeId) *ng.InboundConnection {
+
+	cortex := neuron.Cortex
 
 	if len(availableNodeIds) == 0 {
 		log.Printf("Warning: unable to add inlink to neuron: %v", neuron)

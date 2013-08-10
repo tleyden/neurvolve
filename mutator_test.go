@@ -36,7 +36,7 @@ func TestNeuronAddInlinkRecurrent(t *testing.T) {
 	for i := 0; i < 100; i++ {
 		xnorCortex := ng.XnorCortex()
 		neuron := xnorCortex.NeuronUUIDMap()["output-neuron"]
-		inboundConnection := NeuronAddInlinkRecurrent(neuron, xnorCortex)
+		inboundConnection := NeuronAddInlinkRecurrent(neuron)
 		if neuron.IsInboundConnectionRecurrent(inboundConnection) {
 			madeRecurrentInlink = true
 		} else {
