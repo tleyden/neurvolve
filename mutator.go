@@ -5,11 +5,8 @@ import (
 	"log"
 )
 
-func NeuronAddInlinkRecurrent(neuron *ng.Neuron, cortex *ng.Cortex) *ng.InboundConnection {
+func inboundConnectionCandidates(neuron *ng.Neuron, cortex *ng.Cortex) []*ng.NodeId {
 
-	// choose a random element B, where element B is another
-	// neuron or a sensor which is not already connected
-	// to this neuron.
 	neuronNodeIds := cortex.NeuronNodeIds()
 	sensorNodeIds := cortex.SensorNodeIds()
 	availableNodeIds := append(neuronNodeIds, sensorNodeIds...)
@@ -24,14 +21,27 @@ func NeuronAddInlinkRecurrent(neuron *ng.Neuron, cortex *ng.Cortex) *ng.InboundC
 		nodeId := inboundConnection.NodeId
 		delete(availableNodeIdMap, nodeId.UUID)
 	}
-
 	availableNodeIds = make([]*ng.NodeId, 0)
 	for _, nodeId := range availableNodeIdMap {
 		availableNodeIds = append(availableNodeIds, nodeId)
 	}
+	return availableNodeIds
+
+}
+
+func NeuronAddInlinkRecurrent(neuron *ng.Neuron, cortex *ng.Cortex) *ng.InboundConnection {
+
+	// choose a random element B, where element B is another
+	// neuron or a sensor which is not already connected
+	// to this neuron.
+	availableNodeIds := inboundConnectionCandidates(neuron, cortex)
+	return neuronAddInlink(neuron, cortex, availableNodeIds)
+}
+
+func neuronAddInlink(neuron *ng.Neuron, cortex *ng.Cortex, availableNodeIds []*ng.NodeId) *ng.InboundConnection {
 
 	if len(availableNodeIds) == 0 {
-		log.Printf("return nil")
+		log.Printf("Warning: unable to add inlink to neuron: %v", neuron)
 		return nil
 	}
 
@@ -50,6 +60,7 @@ func NeuronAddInlinkRecurrent(neuron *ng.Neuron, cortex *ng.Cortex) *ng.InboundC
 	connection := neuron.ConnectInboundWeighted(chosenNodeId, weights)
 
 	return connection
+
 }
 
 /*
