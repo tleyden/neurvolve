@@ -28,6 +28,49 @@ func verifyWeightsModified(neuron, neuronCopy *ng.Neuron) bool {
 
 }
 
+func TestNeuronAddInlinkRecurrent(t *testing.T) {
+
+	madeNonRecurrentInlink := false
+	madeRecurrentInlink := false
+
+	for i := 0; i < 100; i++ {
+		xnorCortex := ng.XnorCortex()
+		neuron := xnorCortex.NeuronUUIDMap()["output-neuron"]
+		inboundConnection := NeuronAddInlinkRecurrent(neuron, xnorCortex)
+		if neuron.IsInboundConnectionRecurrent(inboundConnection) {
+			madeRecurrentInlink = true
+		} else {
+			madeNonRecurrentInlink = true
+		}
+	}
+
+	assert.True(t, madeNonRecurrentInlink)
+	assert.True(t, madeRecurrentInlink)
+
+}
+
+/*
+func TestNeuronAddInlinkNonRecurrent(t *testing.T) {
+	xnorCortex := ng.XnorCortex()
+	neuron := xnorCortex.NeuronUUIDMap()["output-neuron"]
+
+	madeNonRecurrentInlink := false
+	madeRecurrentInlink := false
+
+	for i := 0; i < 100; i++ {
+		inboundConnection := NeuronAddInlinkNonRecurrent(neuron, xnorCortex)
+		if neuron.IsInboundConnectionRecurrent(inboundConnection) {
+			madeRecurrentInlink = true
+		} else {
+			madeNonRecurrentInlink = true
+		}
+	}
+
+	assert.True(t, madeNonRecurrentInlink)
+	assert.False(t, madeRecurrentInlink)
+
+}*/
+
 func TestNeuronMutateWeights(t *testing.T) {
 
 	xnorCortex := ng.XnorCortex()
