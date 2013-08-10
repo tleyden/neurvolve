@@ -3,6 +3,7 @@ package neurvolve
 import (
 	"github.com/couchbaselabs/go.assert"
 	ng "github.com/tleyden/neurgo"
+	"log"
 	"testing"
 )
 
@@ -49,16 +50,31 @@ func TestNeuronAddInlinkRecurrent(t *testing.T) {
 
 }
 
-/*
 func TestNeuronAddInlinkNonRecurrent(t *testing.T) {
-	xnorCortex := ng.XnorCortex()
-	neuron := xnorCortex.NeuronUUIDMap()["output-neuron"]
 
 	madeNonRecurrentInlink := false
 	madeRecurrentInlink := false
 
+	// since it's stochastic, repeat the operation many times and make
+	// sure that it always produces expected behavior
 	for i := 0; i < 100; i++ {
-		inboundConnection := NeuronAddInlinkNonRecurrent(neuron, xnorCortex)
+
+		xnorCortex := ng.XnorCortex()
+		neuron := xnorCortex.NeuronUUIDMap()["output-neuron"]
+		hiddenNeuron1 := xnorCortex.NeuronUUIDMap()["hidden-neuron1"]
+		targetLayerIndex := hiddenNeuron1.NodeId.LayerIndex
+
+		// add a new neuron at the same layer index as the hidden neurons
+		hiddenNeuron3 := &ng.Neuron{
+			ActivationFunction: ng.EncodableSigmoid(),
+			NodeId:             ng.NewNeuronId("hidden-neuron3", targetLayerIndex),
+			Bias:               -30,
+		}
+		hiddenNeuron3.Init()
+		xnorCortex.Neurons = append(xnorCortex.Neurons, hiddenNeuron3)
+
+		inboundConnection := NeuronAddInlinkNonRecurrent(neuron)
+		log.Printf("new inbound: %v", inboundConnection)
 		if neuron.IsInboundConnectionRecurrent(inboundConnection) {
 			madeRecurrentInlink = true
 		} else {
@@ -69,7 +85,7 @@ func TestNeuronAddInlinkNonRecurrent(t *testing.T) {
 	assert.True(t, madeNonRecurrentInlink)
 	assert.False(t, madeRecurrentInlink)
 
-}*/
+}
 
 func TestNeuronMutateWeights(t *testing.T) {
 

@@ -30,6 +30,21 @@ func inboundConnectionCandidates(neuron *ng.Neuron) []*ng.NodeId {
 
 }
 
+func NeuronAddInlinkNonRecurrent(neuron *ng.Neuron) *ng.InboundConnection {
+	availableNodeIds := inboundConnectionCandidates(neuron)
+
+	// remove any node id's which have a layer index >= neuron.LayerIndex
+	nonRecurrentNodeIds := make([]*ng.NodeId, 0)
+	for _, nodeId := range availableNodeIds {
+		if nodeId.LayerIndex < neuron.NodeId.LayerIndex {
+			nonRecurrentNodeIds = append(nonRecurrentNodeIds, nodeId)
+		}
+
+	}
+
+	return neuronAddInlink(neuron, nonRecurrentNodeIds)
+}
+
 func NeuronAddInlinkRecurrent(neuron *ng.Neuron) *ng.InboundConnection {
 
 	// choose a random element B, where element B is another
@@ -65,12 +80,6 @@ func neuronAddInlink(neuron *ng.Neuron, availableNodeIds []*ng.NodeId) *ng.Inbou
 	return connection
 
 }
-
-/*
-func NeuronAddInlinkNonRecurrent(neuron *ng.Neuron) *ng.InboundConnection {
-	return nil
-}
-*/
 
 func NeuronMutateWeights(neuron *ng.Neuron) bool {
 	didPerturbAnyWeights := false
