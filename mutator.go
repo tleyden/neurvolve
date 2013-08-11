@@ -74,8 +74,12 @@ func neuronAddInlink(neuron *ng.Neuron, availableNodeIds []*ng.NodeId) *ng.Inbou
 	}
 	weights := randomWeights(weightVectorLength)
 
-	// now make a connection
+	// make an inbound connection chosenNodeId <- neuron
 	connection := neuron.ConnectInboundWeighted(chosenNodeId, weights)
+
+	// make an outbound connection chosenNodeId -> neuron
+	chosenConnector := cortex.FindConnector(chosenNodeId)
+	ng.ConnectOutbound(chosenConnector, neuron)
 
 	return connection
 

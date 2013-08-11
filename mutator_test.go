@@ -39,16 +39,35 @@ func TestNeuronAddInlinkRecurrent(t *testing.T) {
 		neuron := xnorCortex.NeuronUUIDMap()["output-neuron"]
 		inboundConnection := NeuronAddInlinkRecurrent(neuron)
 		if neuron.IsInboundConnectionRecurrent(inboundConnection) {
+
+			// the first time we make a nonRecurrentInlink,
+			// test the network out
+			if madeRecurrentInlink == false {
+				log.Printf("cortex: %v", xnorCortex)
+
+				// make sure the network doesn't totally break
+				/*
+					examples := ng.XnorTrainingSamples()
+					fitness := xnorCortex.Fitness(examples)
+					assert.True(t, fitness >= 0)
+				*/
+			}
+
 			madeRecurrentInlink = true
 		} else {
+
+			// the first time we make a nonRecurrentInlink,
+			// test the network out
+			if madeNonRecurrentInlink == false {
+				log.Printf("cortex: %v", xnorCortex)
+
+				// make sure the network doesn't totally break
+				examples := ng.XnorTrainingSamples()
+				fitness := xnorCortex.Fitness(examples)
+				assert.True(t, fitness >= 0)
+			}
+
 			madeNonRecurrentInlink = true
-
-			log.Printf("cortex: %v", xnorCortex)
-
-			// make sure the network doesn't totally break
-			examples := ng.XnorTrainingSamples()
-			fitness := xnorCortex.Fitness(examples)
-			assert.True(t, fitness >= 0)
 
 		}
 
