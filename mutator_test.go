@@ -1,6 +1,8 @@
 package neurvolve
 
 import (
+	"encoding/json"
+	"fmt"
 	"github.com/couchbaselabs/go.assert"
 	ng "github.com/tleyden/neurgo"
 	"log"
@@ -40,17 +42,37 @@ func TestNeuronAddInlinkRecurrent(t *testing.T) {
 		inboundConnection := NeuronAddInlinkRecurrent(neuron)
 		if neuron.IsInboundConnectionRecurrent(inboundConnection) {
 
+			log.Printf("added inboundConnection: %v", inboundConnection)
+
 			// the first time we make a nonRecurrentInlink,
 			// test the network out
 			if madeRecurrentInlink == false {
-				log.Printf("cortex: %v", xnorCortex)
 
-				// make sure the network doesn't totally break
-				/*
-					examples := ng.XnorTrainingSamples()
-					fitness := xnorCortex.Fitness(examples)
-					assert.True(t, fitness >= 0)
-				*/
+				// workaround for bug:
+				// 1. neuron is Init() when only has X inbound cxn
+				// 2. new (recursive) inbound cxn added (X+1)
+				// 3. dataChan only has X buffer
+				// 4. dataChan needs X+1 buffer
+				// 5. code blocks when trying to send recurrent 0val
+				// real fix:
+				// 1. when adding a new inbound, recreate
+				//    dataChan
+				// 2. go fix up any outbounds that point to datachan
+				// 3. either that or re-create entire network
+				jsonString := fmt.Sprintf("%v", xnorCortex.String())
+				jsonBytes := []byte(jsonString)
+				cortex := &ng.Cortex{}
+				err := json.Unmarshal(jsonBytes, cortex)
+				if err != nil {
+					log.Fatal(err)
+				}
+				assert.True(t, err == nil)
+
+				// make sure the network actually works
+				examples := ng.XnorTrainingSamples()
+				fitness := cortex.Fitness(examples)
+				assert.True(t, fitness >= 0)
+
 			}
 
 			madeRecurrentInlink = true
@@ -59,8 +81,6 @@ func TestNeuronAddInlinkRecurrent(t *testing.T) {
 			// the first time we make a nonRecurrentInlink,
 			// test the network out
 			if madeNonRecurrentInlink == false {
-				log.Printf("cortex: %v", xnorCortex)
-
 				// make sure the network doesn't totally break
 				examples := ng.XnorTrainingSamples()
 				fitness := xnorCortex.Fitness(examples)
