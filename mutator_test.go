@@ -42,7 +42,16 @@ func TestNeuronAddInlinkRecurrent(t *testing.T) {
 			madeRecurrentInlink = true
 		} else {
 			madeNonRecurrentInlink = true
+
+			log.Printf("cortex: %v", xnorCortex)
+
+			// make sure the network doesn't totally break
+			examples := ng.XnorTrainingSamples()
+			fitness := xnorCortex.Fitness(examples)
+			assert.True(t, fitness >= 0)
+
 		}
+
 	}
 
 	assert.True(t, madeNonRecurrentInlink)
