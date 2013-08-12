@@ -118,7 +118,9 @@ func TestNeuronAddInlinkNonRecurrent(t *testing.T) {
 			NodeId:             ng.NewNeuronId("hidden-neuron3", targetLayerIndex),
 			Bias:               -30,
 		}
-		hiddenNeuron3.Init()
+
+		shouldReInit := false
+		hiddenNeuron3.Init(shouldReInit)
 		xnorCortex.Neurons = append(xnorCortex.Neurons, hiddenNeuron3)
 
 		inboundConnection := NeuronAddInlinkNonRecurrent(neuron)
@@ -206,7 +208,8 @@ func TestNeuronRemoveBias(t *testing.T) {
 		NodeId:             ng.NewNeuronId("neuron", 0.25),
 		Bias:               10,
 	}
-	neuron.Init()
+	shouldReInit := false
+	neuron.Init(shouldReInit)
 	NeuronRemoveBias(neuron)
 	assert.True(t, neuron.Bias == 0)
 
@@ -220,7 +223,8 @@ func TestNeuronAddBias(t *testing.T) {
 		ActivationFunction: ng.EncodableSigmoid(),
 		NodeId:             ng.NewNeuronId("neuron", 0.25),
 	}
-	neuron.Init()
+	shouldReInit := false
+	neuron.Init(shouldReInit)
 
 	NeuronAddBias(neuron)
 	assert.True(t, neuron.Bias != 0)
@@ -232,7 +236,7 @@ func TestNeuronAddBias(t *testing.T) {
 		NodeId:             ng.NewNeuronId("neuron", 0.25),
 		Bias:               0,
 	}
-	neuron.Init()
+	neuron.Init(shouldReInit)
 
 	NeuronAddBias(neuron)
 	assert.True(t, neuron.Bias != 0)
@@ -244,7 +248,7 @@ func TestNeuronAddBias(t *testing.T) {
 		NodeId:             ng.NewNeuronId("neuron", 0.25),
 		Bias:               10,
 	}
-	neuron.Init()
+	neuron.Init(shouldReInit)
 	NeuronAddBias(neuron)
 	assert.True(t, neuron.Bias == 10)
 
