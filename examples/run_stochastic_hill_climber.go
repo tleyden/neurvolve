@@ -47,6 +47,7 @@ func RunWeightTraining() {
 
 func XnorCortexUntrained() *ng.Cortex {
 
+	shouldReInit := false
 	sensorNodeId := ng.NewSensorId("sensor", 0.0)
 	hiddenNeuron1NodeId := ng.NewNeuronId("hidden-neuron1", 0.25)
 	hiddenNeuron2NodeId := ng.NewNeuronId("hidden-neuron2", 0.25)
@@ -59,33 +60,33 @@ func XnorCortexUntrained() *ng.Cortex {
 		NodeId:             hiddenNeuron1NodeId,
 		Bias:               nv.RandomBias(),
 	}
-	hiddenNeuron1.Init()
+	hiddenNeuron1.Init(shouldReInit)
 
 	hiddenNeuron2 := &ng.Neuron{
 		ActivationFunction: ng.EncodableSigmoid(),
 		NodeId:             hiddenNeuron2NodeId,
 		Bias:               nv.RandomBias(),
 	}
-	hiddenNeuron2.Init()
+	hiddenNeuron2.Init(shouldReInit)
 
 	outputNeuron := &ng.Neuron{
 		ActivationFunction: ng.EncodableSigmoid(),
 		NodeId:             outputNeuronNodeIde,
 		Bias:               nv.RandomBias(),
 	}
-	outputNeuron.Init()
+	outputNeuron.Init(shouldReInit)
 
 	sensor := &ng.Sensor{
 		NodeId:       sensorNodeId,
 		VectorLength: 2,
 	}
-	sensor.Init()
+	sensor.Init(shouldReInit)
 
 	actuator := &ng.Actuator{
 		NodeId:       actuatorNodeId,
 		VectorLength: 1,
 	}
-	actuator.Init()
+	actuator.Init(shouldReInit)
 
 	sensor.ConnectOutbound(hiddenNeuron1)
 	hiddenNeuron1.ConnectInboundWeighted(sensor, []float64{20, 20})
