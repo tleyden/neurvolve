@@ -77,14 +77,18 @@ func TestNeuronAddInlinkRecurrent(t *testing.T) {
 
 func TestNeuronAddInlinkNonRecurrent(t *testing.T) {
 
+	ng.SeedRandom()
+
 	madeNonRecurrentInlink := false
 	madeRecurrentInlink := false
+	firstTime := true
 
 	// since it's stochastic, repeat the operation many times and make
 	// sure that it always produces expected behavior
 	for i := 0; i < 100; i++ {
 
 		xnorCortex := ng.XnorCortex()
+		sensor := xnorCortex.Sensors[0]
 		neuron := xnorCortex.NeuronUUIDMap()["output-neuron"]
 		hiddenNeuron1 := xnorCortex.NeuronUUIDMap()["hidden-neuron1"]
 		targetLayerIndex := hiddenNeuron1.NodeId.LayerIndex
@@ -99,6 +103,9 @@ func TestNeuronAddInlinkNonRecurrent(t *testing.T) {
 		shouldReInit := false
 		hiddenNeuron3.Init(shouldReInit)
 		xnorCortex.Neurons = append(xnorCortex.Neurons, hiddenNeuron3)
+		weights := randomWeights(sensor.VectorLength)
+		sensor.ConnectOutbound(hiddenNeuron3)
+		hiddenNeuron3.ConnectInboundWeighted(sensor, weights)
 
 		inboundConnection := NeuronAddInlinkNonRecurrent(neuron)
 		log.Printf("new inbound: %v", inboundConnection)
@@ -107,6 +114,26 @@ func TestNeuronAddInlinkNonRecurrent(t *testing.T) {
 		} else {
 			madeNonRecurrentInlink = true
 		}
+
+		if firstTime == true {
+
+			// only two possibilities - the hiddenNeuron3 or the
+			// sensor.  if it was the sensor, then the hiddenNeuron3
+			// is "dangliing" and so lets connect it
+			if inboundConnection.NodeId.UUID == "sensor" {
+				weights2 := randomWeights(1)
+				hiddenNeuron3.ConnectOutbound(neuron)
+				neuron.ConnectInboundWeighted(hiddenNeuron3, weights2)
+			}
+
+			// run network make sure it runs
+			examples := ng.XnorTrainingSamples()
+			fitness := xnorCortex.Fitness(examples)
+			assert.True(t, fitness >= 0)
+
+			firstTime = false
+		}
+
 	}
 
 	assert.True(t, madeNonRecurrentInlink)
