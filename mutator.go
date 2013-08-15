@@ -18,10 +18,13 @@ func inboundConnectionCandidates(neuron *ng.Neuron) []*ng.NodeId {
 	for _, nodeId := range availableNodeIds {
 		availableNodeIdMap[nodeId.UUID] = nodeId
 	}
+
+	// remove things we already have inbound connections from
 	for _, inboundConnection := range neuron.Inbound {
 		nodeId := inboundConnection.NodeId
 		delete(availableNodeIdMap, nodeId.UUID)
 	}
+
 	availableNodeIds = make([]*ng.NodeId, 0)
 	for _, nodeId := range availableNodeIdMap {
 		availableNodeIds = append(availableNodeIds, nodeId)
@@ -83,6 +86,95 @@ func neuronAddInlink(neuron *ng.Neuron, availableNodeIds []*ng.NodeId) *ng.Inbou
 
 	return connection
 
+}
+
+func outboundConnectionCandidates(neuron *ng.Neuron) []*ng.NodeId {
+
+	cortex := neuron.Cortex
+	neuronNodeIds := cortex.NeuronNodeIds()
+	actuatorNodeIds := cortex.ActuatorNodeIds()
+	availableNodeIds := append(neuronNodeIds, actuatorNodeIds...)
+
+	// hackish way to delete a vew elements from this slice.
+	// put in a map and delete from map, then back to slice. TODO: fixme
+	availableNodeIdMap := make(map[string]*ng.NodeId)
+	for _, nodeId := range availableNodeIds {
+		availableNodeIdMap[nodeId.UUID] = nodeId
+	}
+
+	// remove things we are already connected to
+	for _, outboundConnection := range neuron.Outbound {
+		nodeId := outboundConnection.NodeId
+		delete(availableNodeIdMap, nodeId.UUID)
+	}
+
+	// remove actuators that can't support any more inbound connections
+	for _, actuatorNodeId := range actuatorNodeIds {
+		actuator := cortex.FindActuator(actuatorNodeId)
+		// does the actuator have capacity for another
+		// incoming connection?
+		if actuator.CanAddInboundConnection() == false {
+			delete(availableNodeIdMap, actuatorNodeId.UUID)
+		}
+	}
+
+	availableNodeIds = make([]*ng.NodeId, 0)
+	for _, nodeId := range availableNodeIdMap {
+		availableNodeIds = append(availableNodeIds, nodeId)
+	}
+	return availableNodeIds
+
+}
+
+func neuronAddOutlink(neuron *ng.Neuron, availableNodeIds []*ng.NodeId) *ng.OutboundConnection {
+
+	cortex := neuron.Cortex
+
+	if len(availableNodeIds) == 0 {
+		log.Printf("Warning: unable to add inlink to neuron: %v", neuron)
+		return nil
+	}
+
+	randIndex := ng.RandomIntInRange(0, len(availableNodeIds))
+	chosenNodeId := availableNodeIds[randIndex]
+
+	switch chosenNodeId.NodeType {
+	case ng.NEURON:
+
+		// make an outbound connection neuron -> chosenNodeId
+		chosenNeuron := cortex.FindNeuron(chosenNodeId)
+		connection := ng.ConnectOutbound(neuron, chosenNeuron)
+
+		// make an inbound connection chosenNodeId <- neuron
+		weights := randomWeights(1)
+		ng.ConnectInboundWeighted(chosenNeuron, neuron, weights)
+		return connection
+
+	case ng.ACTUATOR:
+
+		chosenActuator := cortex.FindActuator(chosenNodeId)
+
+		// make an outbound connection neuron -> chosenNodeId
+		connection := ng.ConnectOutbound(neuron, chosenActuator)
+
+		// make an inbound connection chosenNodeId <- neuron
+		ng.ConnectInbound(chosenActuator, neuron)
+		return connection
+
+	default:
+		log.Panicf("unexpected chosen node type")
+		return nil
+	}
+
+}
+
+func NeuronAddOutlinkRecurrent(neuron *ng.Neuron) *ng.OutboundConnection {
+
+	// choose a random element B, where element B is another
+	// neuron or a sensor which is not already connected
+	// to this neuron.
+	availableNodeIds := outboundConnectionCandidates(neuron)
+	return neuronAddOutlink(neuron, availableNodeIds)
 }
 
 func NeuronMutateWeights(neuron *ng.Neuron) bool {
