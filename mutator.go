@@ -177,6 +177,23 @@ func NeuronAddOutlinkRecurrent(neuron *ng.Neuron) *ng.OutboundConnection {
 	return neuronAddOutlink(neuron, availableNodeIds)
 }
 
+func NeuronAddOutlinkNonRecurrent(neuron *ng.Neuron) *ng.OutboundConnection {
+
+	availableNodeIds := outboundConnectionCandidates(neuron)
+
+	// remove any node id's which have a layer index >= neuron.LayerIndex
+	nonRecurrentNodeIds := make([]*ng.NodeId, 0)
+	for _, nodeId := range availableNodeIds {
+		if nodeId.LayerIndex > neuron.NodeId.LayerIndex {
+			nonRecurrentNodeIds = append(nonRecurrentNodeIds, nodeId)
+		}
+
+	}
+
+	return neuronAddOutlink(neuron, nonRecurrentNodeIds)
+
+}
+
 func NeuronMutateWeights(neuron *ng.Neuron) bool {
 	didPerturbAnyWeights := false
 	probability := parameterPerturbProbability(neuron)

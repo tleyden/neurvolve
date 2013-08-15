@@ -31,9 +31,16 @@ func testCortex() *ng.Cortex {
 	}
 	hiddenNeuron2.Init(shouldReInit)
 
+	hiddenNeuron3 := &ng.Neuron{
+		ActivationFunction: ng.EncodableSigmoid(),
+		NodeId:             ng.NewNeuronId("hidden-neuron3", 0.35),
+		Bias:               10,
+	}
+	hiddenNeuron3.Init(shouldReInit)
+
 	outputNeuron := &ng.Neuron{
 		ActivationFunction: ng.EncodableSigmoid(),
-		NodeId:             ng.NewNeuronId("output-neuron", 0.35),
+		NodeId:             ng.NewNeuronId("output-neuron", 0.45),
 		Bias:               -10,
 	}
 	outputNeuron.Init(shouldReInit)
@@ -50,8 +57,11 @@ func testCortex() *ng.Cortex {
 	hiddenNeuron1.ConnectOutbound(hiddenNeuron2)
 	hiddenNeuron2.ConnectInboundWeighted(hiddenNeuron1, []float64{1})
 
-	hiddenNeuron2.ConnectOutbound(outputNeuron)
-	outputNeuron.ConnectInboundWeighted(hiddenNeuron2, []float64{1})
+	hiddenNeuron2.ConnectOutbound(hiddenNeuron3)
+	hiddenNeuron3.ConnectInboundWeighted(hiddenNeuron2, []float64{1})
+
+	hiddenNeuron3.ConnectOutbound(outputNeuron)
+	outputNeuron.ConnectInboundWeighted(hiddenNeuron3, []float64{1})
 
 	outputNeuron.ConnectOutbound(actuator)
 	actuator.ConnectInbound(outputNeuron)
@@ -62,7 +72,7 @@ func testCortex() *ng.Cortex {
 		NodeId: nodeId,
 	}
 	cortex.SetSensors([]*ng.Sensor{sensor})
-	cortex.SetNeurons([]*ng.Neuron{hiddenNeuron1, hiddenNeuron2, outputNeuron})
+	cortex.SetNeurons([]*ng.Neuron{hiddenNeuron1, hiddenNeuron2, hiddenNeuron3, outputNeuron})
 	cortex.SetActuators([]*ng.Actuator{actuator})
 
 	return cortex
@@ -137,60 +147,6 @@ func TestNeuronAddInlinkRecurrent(t *testing.T) {
 
 }
 
-func TestNeuronAddOutlinkRecurrent(t *testing.T) {
-
-	ng.SeedRandom()
-
-	madeNonRecurrentLink := false
-	madeRecurrentLink := false
-
-	for i := 0; i < 100; i++ {
-		xnorCortex := testCortex()
-
-		neuron := xnorCortex.NeuronUUIDMap()["hidden-neuron1"]
-
-		numOutlinksBefore := len(neuron.Outbound)
-
-		outboundConnection := NeuronAddOutlinkRecurrent(neuron)
-		numOutlinksAfter := len(neuron.Outbound)
-
-		assert.Equals(t, numOutlinksBefore+1, numOutlinksAfter)
-
-		if neuron.IsConnectionRecurrent(outboundConnection) {
-
-			// the first time we make a nonRecurrentInlink,
-			// test the network out
-			if madeRecurrentLink == false {
-				// make sure the network actually works
-				examples := ng.XnorTrainingSamples()
-				fitness := xnorCortex.Fitness(examples)
-				assert.True(t, fitness >= 0)
-
-			}
-
-			madeRecurrentLink = true
-		} else {
-
-			// the first time we make a nonRecurrentInlink,
-			// test the network out
-			if madeNonRecurrentLink == false {
-				// make sure the network doesn't totally break
-				examples := ng.XnorTrainingSamples()
-				fitness := xnorCortex.Fitness(examples)
-				assert.True(t, fitness >= 0)
-			}
-
-			madeNonRecurrentLink = true
-
-		}
-
-	}
-
-	assert.True(t, madeNonRecurrentLink)
-	assert.True(t, madeRecurrentLink)
-
-}
-
 func TestNeuronAddInlinkNonRecurrent(t *testing.T) {
 
 	ng.SeedRandom()
@@ -254,6 +210,85 @@ func TestNeuronAddInlinkNonRecurrent(t *testing.T) {
 
 	assert.True(t, madeNonRecurrentInlink)
 	assert.False(t, madeRecurrentInlink)
+
+}
+
+func TestNeuronAddOutlinkNonRecurrent(t *testing.T) {
+
+	ng.SeedRandom()
+
+	madeNonRecurrentLink := false
+	madeRecurrentLink := false
+
+	for i := 0; i < 100; i++ {
+		xnorCortex := testCortex()
+		neuron := xnorCortex.NeuronUUIDMap()["hidden-neuron1"]
+		outboundConnection := NeuronAddOutlinkNonRecurrent(neuron)
+		log.Printf("outbound: %v", outboundConnection)
+		if neuron.IsConnectionRecurrent(outboundConnection) {
+			madeRecurrentLink = true
+		} else {
+			madeNonRecurrentLink = true
+		}
+
+	}
+
+	assert.True(t, madeNonRecurrentLink)
+	assert.False(t, madeRecurrentLink)
+
+}
+
+func TestNeuronAddOutlinkRecurrent(t *testing.T) {
+
+	ng.SeedRandom()
+
+	madeNonRecurrentLink := false
+	madeRecurrentLink := false
+
+	for i := 0; i < 100; i++ {
+		xnorCortex := testCortex()
+
+		neuron := xnorCortex.NeuronUUIDMap()["hidden-neuron1"]
+
+		numOutlinksBefore := len(neuron.Outbound)
+
+		outboundConnection := NeuronAddOutlinkRecurrent(neuron)
+		numOutlinksAfter := len(neuron.Outbound)
+
+		assert.Equals(t, numOutlinksBefore+1, numOutlinksAfter)
+
+		if neuron.IsConnectionRecurrent(outboundConnection) {
+
+			// the first time we make a nonRecurrentInlink,
+			// test the network out
+			if madeRecurrentLink == false {
+				// make sure the network actually works
+				examples := ng.XnorTrainingSamples()
+				fitness := xnorCortex.Fitness(examples)
+				assert.True(t, fitness >= 0)
+
+			}
+
+			madeRecurrentLink = true
+		} else {
+
+			// the first time we make a nonRecurrentInlink,
+			// test the network out
+			if madeNonRecurrentLink == false {
+				// make sure the network doesn't totally break
+				examples := ng.XnorTrainingSamples()
+				fitness := xnorCortex.Fitness(examples)
+				assert.True(t, fitness >= 0)
+			}
+
+			madeNonRecurrentLink = true
+
+		}
+
+	}
+
+	assert.True(t, madeNonRecurrentLink)
+	assert.True(t, madeRecurrentLink)
 
 }
 
