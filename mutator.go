@@ -85,8 +85,6 @@ func NeuronAddInlinkRecurrent(neuron *ng.Neuron) *ng.InboundConnection {
 
 func neuronAddInlink(neuron *ng.Neuron, availableNodeIds []*ng.NodeId) *ng.InboundConnection {
 
-	cortex := neuron.Cortex
-
 	if len(availableNodeIds) == 0 {
 		log.Printf("Warning: unable to add inlink to neuron: %v", neuron)
 		return nil
@@ -98,7 +96,7 @@ func neuronAddInlink(neuron *ng.Neuron, availableNodeIds []*ng.NodeId) *ng.Inbou
 
 }
 
-func neuronAddInlinkFrom(neuron *ng.Neuron, sourceNodeId *NodeId) *ng.InboundConnection {
+func neuronAddInlinkFrom(neuron *ng.Neuron, sourceNodeId *ng.NodeId) *ng.InboundConnection {
 
 	cortex := neuron.Cortex
 
@@ -161,8 +159,6 @@ func outboundConnectionCandidates(neuron *ng.Neuron) []*ng.NodeId {
 
 func neuronAddOutlink(neuron *ng.Neuron, availableNodeIds []*ng.NodeId) *ng.OutboundConnection {
 
-	cortex := neuron.Cortex
-
 	if len(availableNodeIds) == 0 {
 		log.Printf("Warning: unable to add inlink to neuron: %v", neuron)
 		return nil
@@ -175,7 +171,9 @@ func neuronAddOutlink(neuron *ng.Neuron, availableNodeIds []*ng.NodeId) *ng.Outb
 
 }
 
-func neuronAddOutlinkTo(neuron *ng.Neuron, targetNodeId ng.NodeId) *ng.OutboundConnection {
+func neuronAddOutlinkTo(neuron *ng.Neuron, targetNodeId *ng.NodeId) *ng.OutboundConnection {
+
+	cortex := neuron.Cortex
 
 	switch targetNodeId.NodeType {
 	case ng.NEURON:
