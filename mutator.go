@@ -34,25 +34,62 @@ func inboundConnectionCandidates(neuron *ng.Neuron) []*ng.NodeId {
 }
 
 func AddNeuronNonRecurrent(cortex *ng.Cortex) *ng.Neuron {
-	layerMap := cortex.NeuronLayerMap()
-	randomLayer := layerMap.ChooseRandomLayer()
+
+	log.Printf("AddNeuronNonRecurrent")
+	nodeIdLayerMap := cortex.NodeIdLayerMap()
+	neuronLayerMap := cortex.NeuronLayerMap()
+	randomLayer := neuronLayerMap.ChooseRandomLayer()
+	log.Printf("randomLayer: %v", randomLayer)
 	neuron := cortex.CreateNeuronInLayer(randomLayer)
-	upstreamNeuron := layerMap.ChooseNeuronPrecedingLayer(randomLayer)
-	if upstreamNeuron == nil {
+	log.Printf("neuron: %v", neuron)
+	upstreamNodeId := nodeIdLayerMap.ChooseNodeIdPrecedingLayer(randomLayer)
+	log.Printf("upstreamNodeId: %v", upstreamNodeId)
+	if upstreamNodeId == nil {
 		log.Printf("Unable to find upstream neuron, cannot add neuron")
 		return nil
 	}
 
-	downstreamNeuron := layerMap.ChooseNeuronFollowingLayer(randomLayer)
-	if downstreamNeuron == nil {
+	downstreamNodeId := findDownstreamNodeId(cortex, nodeIdLayerMap, randomLayer)
+	if downstreamNodeId == nil {
 		log.Printf("Unable to find downstream neuron, cannot add neuron")
 		return nil
 	}
 
-	neuronAddInlinkFrom(neuron, upstreamNeuron.NodeId)
-	neuronAddOutlinkTo(neuron, downstreamNeuron.NodeId)
+	neuronAddInlinkFrom(neuron, upstreamNodeId)
+	neuronAddOutlinkTo(neuron, downstreamNodeId)
 
+	log.Printf("/AddNeuronNonRecurrent")
 	return neuron
+}
+
+func findDownstreamNodeId(cortex *ng.Cortex, layerMap ng.LayerToNodeIdMap, fromLayer float64) *ng.NodeId {
+
+	numAttempts := len(cortex.AllNodeIds())
+
+	for i := 0; i < numAttempts; i++ {
+
+		log.Printf("findDownstreamNodeId")
+
+		downstreamNodeId := layerMap.ChooseNodeIdFollowingLayer(fromLayer)
+
+		log.Printf("downstreamNodeId: %v", downstreamNodeId)
+
+		if downstreamNodeId == nil {
+			log.Printf("Unable to find downstream neuron, cannot add neuron")
+			return nil
+		}
+		if downstreamNodeId.NodeType == ng.ACTUATOR {
+			// make sure it has capacity for new incoming
+			actuator := cortex.FindActuator(downstreamNodeId)
+			if actuator.CanAddInboundConnection() == false {
+				continue
+			}
+		}
+		return downstreamNodeId
+	}
+
+	return nil
+
 }
 
 func AddNeuronRecurrent(cortex *ng.Cortex) *ng.Neuron {

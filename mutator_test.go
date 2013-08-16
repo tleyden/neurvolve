@@ -105,11 +105,22 @@ func TestAddNeuronNonRecurrent(t *testing.T) {
 
 	ng.SeedRandom()
 
-	for i := 0; i < 100; i++ {
+	numUnableToAdd := 0
+	numIterations := 100
 
+	for i := 0; i < numIterations; i++ {
+
+		log.Printf("top of loop: %v", i)
 		cortex := testCortex()
 		numNeuronsBefore := len(cortex.Neurons)
 		neuron := AddNeuronNonRecurrent(cortex)
+
+		if neuron == nil {
+			numUnableToAdd += 1
+			continue
+		}
+
+		log.Printf("added neuron: %v", neuron)
 		assert.True(t, neuron != nil)
 		assert.True(t, neuron.ActivationFunction != nil)
 		numNeuronsAfter := len(cortex.Neurons)
@@ -128,7 +139,11 @@ func TestAddNeuronNonRecurrent(t *testing.T) {
 		fitness := cortex.Fitness(examples)
 		assert.True(t, fitness >= 0)
 
+		log.Printf("bottom of loop: %v", i)
+
 	}
+
+	assert.True(t, numUnableToAdd <= (numIterations/3))
 
 }
 
