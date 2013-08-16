@@ -33,6 +33,32 @@ func inboundConnectionCandidates(neuron *ng.Neuron) []*ng.NodeId {
 
 }
 
+func AddNeuronNonRecurrent(cortex *ng.Cortex) *ng.Neuron {
+	layerMap := cortex.NeuronLayerMap()
+	randomLayer := layerMap.ChooseRandomLayer()
+	neuron := cortex.CreateNeuronInLayer(randomLayer)
+	upstreamNeuron := layerMap.ChooseNeuronPrecedingLayer(randomLayer)
+	if upstreamNeuron == nil {
+		log.Printf("Unable to find upstream neuron, cannot add neuron")
+		return nil
+	}
+
+	downstreamNeuron := layerMap.ChooseNeuronFollowingLayer(randomLayer)
+	if downstreamNeuron == nil {
+		log.Printf("Unable to find downstream neuron, cannot add neuron")
+		return nil
+	}
+
+	neuronAddInlinkFrom(neuron, upstreamNeuron.NodeId)
+	neuronAddOutlinkTo(neuron, downstreamNeuron.NodeId)
+
+	return neuron
+}
+
+func AddNeuronRecurrent(cortex *ng.Cortex) *ng.Neuron {
+	return nil
+}
+
 func NeuronAddInlinkNonRecurrent(neuron *ng.Neuron) *ng.InboundConnection {
 	availableNodeIds := inboundConnectionCandidates(neuron)
 
@@ -68,20 +94,27 @@ func neuronAddInlink(neuron *ng.Neuron, availableNodeIds []*ng.NodeId) *ng.Inbou
 
 	randIndex := ng.RandomIntInRange(0, len(availableNodeIds))
 	chosenNodeId := availableNodeIds[randIndex]
+	return neuronAddInlinkFrom(neuron, chosenNodeId)
+
+}
+
+func neuronAddInlinkFrom(neuron *ng.Neuron, sourceNodeId *NodeId) *ng.InboundConnection {
+
+	cortex := neuron.Cortex
 
 	// create weight vector
 	weightVectorLength := 1
-	if chosenNodeId.NodeType == ng.SENSOR {
-		sensor := cortex.FindSensor(chosenNodeId)
+	if sourceNodeId.NodeType == ng.SENSOR {
+		sensor := cortex.FindSensor(sourceNodeId)
 		weightVectorLength = sensor.VectorLength
 	}
 	weights := randomWeights(weightVectorLength)
 
-	// make an inbound connection chosenNodeId <- neuron
-	connection := neuron.ConnectInboundWeighted(chosenNodeId, weights)
+	// make an inbound connection sourceNodeId <- neuron
+	connection := neuron.ConnectInboundWeighted(sourceNodeId, weights)
 
-	// make an outbound connection chosenNodeId -> neuron
-	chosenConnector := cortex.FindConnector(chosenNodeId)
+	// make an outbound connection sourceNodeId -> neuron
+	chosenConnector := cortex.FindConnector(sourceNodeId)
 	ng.ConnectOutbound(chosenConnector, neuron)
 
 	return connection
@@ -138,26 +171,32 @@ func neuronAddOutlink(neuron *ng.Neuron, availableNodeIds []*ng.NodeId) *ng.Outb
 	randIndex := ng.RandomIntInRange(0, len(availableNodeIds))
 	chosenNodeId := availableNodeIds[randIndex]
 
-	switch chosenNodeId.NodeType {
+	return neuronAddOutlinkTo(neuron, chosenNodeId)
+
+}
+
+func neuronAddOutlinkTo(neuron *ng.Neuron, targetNodeId ng.NodeId) *ng.OutboundConnection {
+
+	switch targetNodeId.NodeType {
 	case ng.NEURON:
 
-		// make an outbound connection neuron -> chosenNodeId
-		chosenNeuron := cortex.FindNeuron(chosenNodeId)
+		// make an outbound connection neuron -> targetNodeId
+		chosenNeuron := cortex.FindNeuron(targetNodeId)
 		connection := ng.ConnectOutbound(neuron, chosenNeuron)
 
-		// make an inbound connection chosenNodeId <- neuron
+		// make an inbound connection targetNodeId <- neuron
 		weights := randomWeights(1)
 		ng.ConnectInboundWeighted(chosenNeuron, neuron, weights)
 		return connection
 
 	case ng.ACTUATOR:
 
-		chosenActuator := cortex.FindActuator(chosenNodeId)
+		chosenActuator := cortex.FindActuator(targetNodeId)
 
-		// make an outbound connection neuron -> chosenNodeId
+		// make an outbound connection neuron -> targetNodeId
 		connection := ng.ConnectOutbound(neuron, chosenActuator)
 
-		// make an inbound connection chosenNodeId <- neuron
+		// make an inbound connection targetNodeId <- neuron
 		ng.ConnectInbound(chosenActuator, neuron)
 		return connection
 

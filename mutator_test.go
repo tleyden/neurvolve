@@ -101,6 +101,41 @@ func verifyWeightsModified(neuron, neuronCopy *ng.Neuron) bool {
 
 }
 
+func TestAddNeuronNonRecurrent(t *testing.T) {
+
+	ng.SeedRandom()
+
+	for i := 0; i < 100; i++ {
+
+		cortex := testCortex()
+		numNeuronsBefore := len(cortex.Neurons)
+		neuron := AddNeuronNonRecurrent(cortex)
+		assert.True(t, neuron != nil)
+		assert.True(t, neuron.ActivationFunction != nil)
+		numNeuronsAfter := len(cortex.Neurons)
+		assert.Equals(t, numNeuronsAfter, numNeuronsBefore+1)
+
+		// should have 1 outbound and inbound
+		assert.Equals(t, len(neuron.Inbound), 1)
+		assert.Equals(t, len(neuron.Outbound), 1)
+
+		// should be no recurrent connections
+		assert.Equals(t, len(neuron.RecurrentInboundConnections()), 0)
+		assert.Equals(t, len(neuron.RecurrentOutboundConnections()), 0)
+
+		// run network make sure it runs
+		examples := ng.XnorTrainingSamples()
+		fitness := cortex.Fitness(examples)
+		assert.True(t, fitness >= 0)
+
+	}
+
+}
+
+func TestAddNeuronRecurrent(t *testing.T) {
+
+}
+
 func TestNeuronAddInlinkRecurrent(t *testing.T) {
 
 	madeNonRecurrentInlink := false
