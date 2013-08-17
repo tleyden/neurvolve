@@ -5,6 +5,8 @@ import (
 	"log"
 )
 
+type OutboundChooser func(*ng.Neuron) *ng.OutboundConnection
+
 func inboundConnectionCandidates(neuron *ng.Neuron) []*ng.NodeId {
 
 	cortex := neuron.Cortex
@@ -57,7 +59,7 @@ func AddNeuronNonRecurrent(cortex *ng.Cortex) *ng.Neuron {
 	return neuron
 }
 
-func Outsplice(cortex *ng.Cortex, chooseOutbound func(*ng.Neuron) *ng.OutboundConnection) *ng.Neuron {
+func Outsplice(cortex *ng.Cortex, chooseOutbound OutboundChooser) *ng.Neuron {
 
 	numAttempts := len(cortex.AllNodeIds())
 
