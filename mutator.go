@@ -58,7 +58,54 @@ func AddNeuronNonRecurrent(cortex *ng.Cortex) *ng.Neuron {
 }
 
 func OutspliceNonRecurrent(cortex *ng.Cortex) *ng.Neuron {
+
+	numAttempts := len(cortex.AllNodeIds())
+
+	for i := 0; i < numAttempts; i++ {
+		neuronA := randomNeuron(cortex)
+		outbound := randomNonRecurrentOutbound(neuronA)
+		if outbound == nil {
+			continue
+		}
+
+		nodeIdB := outbound.NodeId
+
+		// figure out which layer neuronK will go in
+		nodeIdLayerMap := cortex.NodeIdLayerMap()
+		layerA := neuronA.NodeId.LayerIndex
+		layerB := nodeIdB.LayerIndex
+		layerK := nodeIdLayerMap.LayerBetweenOrNew(layerA, layerB)
+
+		neuronK := cortex.CreateNeuronInLayer(layerK)
+
+		// disconnect neuronA <-> nodeB
+
+		// connect neuronA -> neuronK
+
+		// connect neuronK -> nodeB
+
+	}
 	return nil
+
+}
+
+func randomNonRecurrentOutbound(neuron *ng.Neuron) *ng.OutboundConnection {
+	for i := 0; i < len(neuron.Outbound); i++ {
+		randIndex := RandomIntInRange(0, len(neuron.Outbound))
+		outbound := neuron.Outbound[randIndex]
+		if neuron.IsConnectionRecurrent(outbound) {
+			continue
+		} else {
+			return outbound
+		}
+	}
+	return nil
+}
+
+func randomNeuron(cortex *ng.Cortex) *ng.Neuron {
+	neurons := cortex.Neurons
+	randIndex := RandomIntInRange(0, len(neurons))
+	return neurons[randIndex]
 }
 
 func AddNeuronRecurrent(cortex *ng.Cortex) *ng.Neuron {

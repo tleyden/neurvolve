@@ -112,6 +112,7 @@ func TestOutspliceNonRecurrent(t *testing.T) {
 
 		cortex := testCortex()
 		numNeuronsBefore := len(cortex.Neurons)
+		neuronLayerMapBefore := cortex.NeuronLayerMap()
 		neuron := OutspliceNonRecurrent(cortex)
 
 		if neuron == nil {
@@ -131,6 +132,12 @@ func TestOutspliceNonRecurrent(t *testing.T) {
 		// should be no recurrent connections
 		assert.Equals(t, len(neuron.RecurrentInboundConnections()), 0)
 		assert.Equals(t, len(neuron.RecurrentOutboundConnections()), 0)
+
+		// should have one more layer (this makes an assumption
+		// about the testCortex architecture)
+		numLayersBefore := len(neuronLayerMapBefore)
+		numLayersAfter := len(cortex.NeuronLayerMap())
+		assert.Equals(t, numLayersAfter, numLayersBefore+1)
 
 		// run network make sure it runs
 		examples := ng.XnorTrainingSamples()
