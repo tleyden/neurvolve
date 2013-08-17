@@ -57,10 +57,6 @@ func testCortex() *ng.Cortex {
 	hiddenNeuron1.ConnectOutbound(hiddenNeuron2)
 	hiddenNeuron2.ConnectInboundWeighted(hiddenNeuron1, []float64{1})
 
-	// jumps over 2nd hidden layer, direct from 1st -> 3rd
-	hiddenNeuron1.ConnectOutbound(hiddenNeuron3)
-	hiddenNeuron3.ConnectInboundWeighted(hiddenNeuron1, []float64{1})
-
 	hiddenNeuron2.ConnectOutbound(hiddenNeuron3)
 	hiddenNeuron3.ConnectInboundWeighted(hiddenNeuron2, []float64{1})
 
@@ -132,6 +128,10 @@ func testCortexRecurrent() *ng.Cortex {
 
 	hiddenNeuron1.ConnectOutbound(hiddenNeuron2)
 	hiddenNeuron2.ConnectInboundWeighted(hiddenNeuron1, []float64{1})
+
+	// jumps over 2nd hidden layer, direct from 1st -> 3rd
+	hiddenNeuron1.ConnectOutbound(hiddenNeuron3)
+	hiddenNeuron3.ConnectInboundWeighted(hiddenNeuron1, []float64{1})
 
 	hiddenNeuron2.ConnectOutbound(hiddenNeuron3)
 	hiddenNeuron3.ConnectInboundWeighted(hiddenNeuron2, []float64{1})
