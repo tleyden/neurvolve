@@ -58,7 +58,52 @@ func AddNeuronNonRecurrent(cortex *ng.Cortex) *ng.Neuron {
 }
 
 func OutspliceRecurrent(cortex *ng.Cortex) *ng.Neuron {
+	numAttempts := len(cortex.AllNodeIds())
+
+	for i := 0; i < numAttempts; i++ {
+		neuronA := randomNeuron(cortex)
+		outbound := randomOutbound(neuronA)
+		if outbound == nil {
+			continue
+		}
+
+		nodeIdB := outbound.NodeId
+
+		// figure out which layer neuronK will go in
+		nodeIdLayerMap := cortex.NodeIdLayerMap()
+		layerA := neuronA.NodeId.LayerIndex
+		layerB := nodeIdB.LayerIndex
+		layerK := nodeIdLayerMap.LayerBetweenOrNew(layerA, layerB)
+
+		// create neuron K
+		neuronK := cortex.CreateNeuronInLayer(layerK)
+
+		// disconnect neuronA <-> nodeB
+		nodeBConnector := cortex.FindInboundConnector(nodeIdB)
+		ng.DisconnectOutbound(neuronA, nodeIdB)
+		ng.DisconnectInbound(nodeBConnector, neuronA)
+
+		// connect neuronA -> neuronK
+		weights := randomWeights(1)
+		ng.ConnectOutbound(neuronA, neuronK)
+		ng.ConnectInboundWeighted(neuronK, neuronA, weights)
+
+		// connect neuronK -> nodeB
+		switch nodeIdB.NodeType {
+		case ng.NEURON:
+			neuronB := cortex.FindNeuron(nodeIdB)
+			ng.ConnectOutbound(neuronK, neuronB)
+			ng.ConnectInboundWeighted(nodeBConnector, neuronK, weights)
+		case ng.ACTUATOR:
+			actuatorB := cortex.FindActuator(nodeIdB)
+			ng.ConnectOutbound(neuronK, actuatorB)
+			ng.ConnectInbound(nodeBConnector, neuronK)
+		}
+		return neuronK
+
+	}
 	return nil
+
 }
 
 func OutspliceNonRecurrent(cortex *ng.Cortex) *ng.Neuron {
