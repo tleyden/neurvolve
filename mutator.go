@@ -76,13 +76,27 @@ func OutspliceNonRecurrent(cortex *ng.Cortex) *ng.Neuron {
 		layerB := nodeIdB.LayerIndex
 		layerK := nodeIdLayerMap.LayerBetweenOrNew(layerA, layerB)
 
+		// create neuron K
 		neuronK := cortex.CreateNeuronInLayer(layerK)
 
 		// disconnect neuronA <-> nodeB
+		nodeBConnector := cortex.FindConnector(nodeIdB)
+		ng.DisconnectOutbound(neuronA, nodeIdB)
+		ng.DisconnectInbound(nodeBConnector, neuronA)
 
 		// connect neuronA -> neuronK
+		weights := randomWeights(1)
+		ng.ConnectOutbound(neuronA, neuronK)
+		ng.ConnectInboundWeighted(neuronK, neuronA, weights)
 
 		// connect neuronK -> nodeB
+		ng.ConnectOutbound(neuronK, nodeIdB)
+		switch nodeIdB.NodeType {
+		case ng.NEURON:
+			ng.ConnectInboundWeighted(nodeBConnector, neuronK, weights)
+		case ng.ACTUATOR:
+			ng.ConnectInbound(nodeBConnector, neuronK)
+		}
 
 	}
 	return nil
