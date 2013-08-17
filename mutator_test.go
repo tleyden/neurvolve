@@ -101,6 +101,58 @@ func verifyWeightsModified(neuron, neuronCopy *ng.Neuron) bool {
 
 }
 
+func TestOutspliceRecurrent(t *testing.T) {
+
+	ng.SeedRandom()
+
+	numOutspliced := 0
+	numOutsplicedWithNewLayer := 0
+	numOutsplicedWithExistingLayer := 0
+	numIterations := 100
+
+	for i := 0; i < numIterations; i++ {
+
+		cortex := testCortex()
+		numNeuronsBefore := len(cortex.Neurons)
+		neuronLayerMapBefore := cortex.NeuronLayerMap()
+		neuron := OutspliceRecurrent(cortex)
+
+		if neuron == nil {
+			continue
+		} else {
+			numOutspliced += 1
+		}
+
+		assert.True(t, neuron.ActivationFunction != nil)
+		numNeuronsAfter := len(cortex.Neurons)
+		assert.Equals(t, numNeuronsAfter, numNeuronsBefore+1)
+
+		// should have 1 outbound and inbound
+		assert.Equals(t, len(neuron.Inbound), 1)
+		assert.Equals(t, len(neuron.Outbound), 1)
+
+		// increment counter if layer added
+		numLayersBefore := len(neuronLayerMapBefore)
+		numLayersAfter := len(cortex.NeuronLayerMap())
+		if numLayersAfter == numLayersBefore+1 {
+			numOutsplicedWithNewLayer += 1
+		} else {
+			numOutsplicedWithExistingLayer += 1
+		}
+
+		// run network make sure it runs
+		examples := ng.XnorTrainingSamples()
+		fitness := cortex.Fitness(examples)
+		assert.True(t, fitness >= 0)
+
+	}
+
+	assert.True(t, numOutspliced > 0)
+	assert.True(t, numOutsplicedWithNewLayer > 0)
+	assert.True(t, numOutsplicedWithExistingLayer > 0)
+
+}
+
 func TestOutspliceNonRecurrent(t *testing.T) {
 
 	ng.SeedRandom()

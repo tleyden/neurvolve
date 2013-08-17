@@ -57,6 +57,10 @@ func AddNeuronNonRecurrent(cortex *ng.Cortex) *ng.Neuron {
 	return neuron
 }
 
+func OutspliceRecurrent(cortex *ng.Cortex) *ng.Neuron {
+	return nil
+}
+
 func OutspliceNonRecurrent(cortex *ng.Cortex) *ng.Neuron {
 
 	numAttempts := len(cortex.AllNodeIds())
