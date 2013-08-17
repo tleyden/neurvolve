@@ -169,6 +169,14 @@ func randomNonRecurrentOutbound(neuron *ng.Neuron) *ng.OutboundConnection {
 	return nil
 }
 
+func randomOutbound(neuron *ng.Neuron) *ng.OutboundConnection {
+	for i := 0; i < len(neuron.Outbound); i++ {
+		randIndex := RandomIntInRange(0, len(neuron.Outbound))
+		return neuron.Outbound[randIndex]
+	}
+	return nil
+}
+
 func randomNeuron(cortex *ng.Cortex) *ng.Neuron {
 	neurons := cortex.Neurons
 	randIndex := RandomIntInRange(0, len(neurons))
