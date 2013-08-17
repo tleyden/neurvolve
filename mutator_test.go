@@ -140,9 +140,9 @@ func TestOutspliceNonRecurrent(t *testing.T) {
 		assert.Equals(t, numLayersAfter, numLayersBefore+1)
 
 		// run network make sure it runs
-		/*examples := ng.XnorTrainingSamples()
+		examples := ng.XnorTrainingSamples()
 		fitness := cortex.Fitness(examples)
-		assert.True(t, fitness >= 0) */
+		assert.True(t, fitness >= 0)
 
 	}
 
