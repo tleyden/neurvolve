@@ -110,7 +110,6 @@ func TestAddNeuronNonRecurrent(t *testing.T) {
 
 	for i := 0; i < numIterations; i++ {
 
-		log.Printf("top of loop: %v", i)
 		cortex := testCortex()
 		numNeuronsBefore := len(cortex.Neurons)
 		neuron := AddNeuronNonRecurrent(cortex)
@@ -120,7 +119,6 @@ func TestAddNeuronNonRecurrent(t *testing.T) {
 			continue
 		}
 
-		log.Printf("added neuron: %v", neuron)
 		assert.True(t, neuron != nil)
 		assert.True(t, neuron.ActivationFunction != nil)
 		numNeuronsAfter := len(cortex.Neurons)
@@ -139,8 +137,6 @@ func TestAddNeuronNonRecurrent(t *testing.T) {
 		fitness := cortex.Fitness(examples)
 		assert.True(t, fitness >= 0)
 
-		log.Printf("bottom of loop: %v", i)
-
 	}
 
 	assert.True(t, numUnableToAdd <= (numIterations/3))
@@ -148,6 +144,37 @@ func TestAddNeuronNonRecurrent(t *testing.T) {
 }
 
 func TestAddNeuronRecurrent(t *testing.T) {
+
+	ng.SeedRandom()
+
+	numAdded := 0
+	numIterations := 10
+
+	for i := 0; i < numIterations; i++ {
+
+		cortex := testCortex()
+		numNeuronsBefore := len(cortex.Neurons)
+		neuron := AddNeuronRecurrent(cortex)
+
+		if neuron == nil {
+			continue
+		} else {
+			numAdded += 1
+		}
+
+		assert.True(t, neuron != nil)
+		assert.True(t, neuron.ActivationFunction != nil)
+		numNeuronsAfter := len(cortex.Neurons)
+		assert.Equals(t, numNeuronsAfter, numNeuronsBefore+1)
+
+		// run network make sure it runs
+		examples := ng.XnorTrainingSamples()
+		fitness := cortex.Fitness(examples)
+		assert.True(t, fitness >= 0)
+
+	}
+
+	assert.True(t, numAdded > 0)
 
 }
 
