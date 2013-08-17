@@ -2,11 +2,10 @@ package neurvolve
 
 import (
 	ng "github.com/tleyden/neurgo"
-	"math"
 )
 
 func randomWeights(length int) []float64 {
-	return ng.RandomWeights()
+	return ng.RandomWeights(length)
 }
 
 func RandomBias() float64 {
@@ -15,4 +14,8 @@ func RandomBias() float64 {
 
 func RandomWeight() float64 {
 	return ng.RandomWeight()
+}
+
+func RandomIntInRange(min, max int) int {
+	return ng.RandomIntInRange(min, max)
 }
