@@ -101,6 +101,48 @@ func verifyWeightsModified(neuron, neuronCopy *ng.Neuron) bool {
 
 }
 
+func TestOutspliceNonRecurrent(t *testing.T) {
+
+	ng.SeedRandom()
+
+	numOutspliced := 0
+	numIterations := 100
+
+	for i := 0; i < numIterations; i++ {
+
+		cortex := testCortex()
+		numNeuronsBefore := len(cortex.Neurons)
+		neuron := OutspliceNonRecurrent(cortex)
+
+		if neuron == nil {
+			continue
+		} else {
+			numOutspliced += 1
+		}
+
+		assert.True(t, neuron.ActivationFunction != nil)
+		numNeuronsAfter := len(cortex.Neurons)
+		assert.Equals(t, numNeuronsAfter, numNeuronsBefore+1)
+
+		// should have 1 outbound and inbound
+		assert.Equals(t, len(neuron.Inbound), 1)
+		assert.Equals(t, len(neuron.Outbound), 1)
+
+		// should be no recurrent connections
+		assert.Equals(t, len(neuron.RecurrentInboundConnections()), 0)
+		assert.Equals(t, len(neuron.RecurrentOutboundConnections()), 0)
+
+		// run network make sure it runs
+		examples := ng.XnorTrainingSamples()
+		fitness := cortex.Fitness(examples)
+		assert.True(t, fitness >= 0)
+
+	}
+
+	assert.True(t, numOutspliced > 0)
+
+}
+
 func TestAddNeuronNonRecurrent(t *testing.T) {
 
 	ng.SeedRandom()
@@ -119,7 +161,6 @@ func TestAddNeuronNonRecurrent(t *testing.T) {
 			continue
 		}
 
-		assert.True(t, neuron != nil)
 		assert.True(t, neuron.ActivationFunction != nil)
 		numNeuronsAfter := len(cortex.Neurons)
 		assert.Equals(t, numNeuronsAfter, numNeuronsBefore+1)
