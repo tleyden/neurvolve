@@ -667,7 +667,12 @@ func TestNeuronAddBias(t *testing.T) {
 }
 
 func TestAddBias(t *testing.T) {
-
-	// xnortCortex := ng.XnorCortex()
-
+	xnorCortex := ng.XnorCortex()
+	for _, neuron := range xnorCortex.Neurons {
+		neuron.Bias = 0.0
+	}
+	beforeString := ng.JsonString(xnorCortex)
+	AddBias(xnorCortex)
+	afterString := ng.JsonString(xnorCortex)
+	assert.True(t, beforeString != afterString)
 }

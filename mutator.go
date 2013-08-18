@@ -478,3 +478,17 @@ func NeuronRemoveBias(neuron *ng.Neuron) {
 		neuron.Bias = 0
 	}
 }
+
+func RandomNeuronMutator(cortex *ng.Cortex, neuronMutator func(*ng.Neuron)) {
+
+	// pick a random neuron
+	neuron := randomNeuron(cortex)
+
+	// apply mutator function
+	neuronMutator(neuron)
+
+}
+
+func AddBias(cortex *ng.Cortex) {
+	RandomNeuronMutator(cortex, NeuronAddBias)
+}
