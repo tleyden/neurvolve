@@ -476,10 +476,12 @@ func NeuronAddBias(neuron *ng.Neuron) bool {
 	return false
 }
 
-func NeuronRemoveBias(neuron *ng.Neuron) {
+func NeuronRemoveBias(neuron *ng.Neuron) bool {
 	if neuron.Bias != 0 {
 		neuron.Bias = 0
+		return true
 	}
+	return false
 }
 
 func RandomNeuronMutator(cortex *ng.Cortex, neuronMutator NeuronMutator) bool {
@@ -489,6 +491,10 @@ func RandomNeuronMutator(cortex *ng.Cortex, neuronMutator NeuronMutator) bool {
 
 func AddBias(cortex *ng.Cortex) bool {
 	return RandomNeuronMutator(cortex, NeuronAddBias)
+}
+
+func RemoveBias(cortex *ng.Cortex) bool {
+	return RandomNeuronMutator(cortex, NeuronRemoveBias)
 }
 
 func MutateWeights(cortex *ng.Cortex) bool {
