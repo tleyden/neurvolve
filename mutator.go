@@ -6,7 +6,8 @@ import (
 )
 
 type OutboundChooser func(*ng.Neuron) *ng.OutboundConnection
-type NeuronMutator func(*ng.Neuron) bool
+type NeuronMutator func(*ng.Neuron) (bool, MutateResult)
+type MutateResult interface{}
 
 func inboundConnectionCandidates(neuron *ng.Neuron) []*ng.NodeId {
 
@@ -425,7 +426,7 @@ func NeuronAddOutlinkNonRecurrent(neuron *ng.Neuron) *ng.OutboundConnection {
 
 }
 
-func NeuronMutateWeights(neuron *ng.Neuron) bool {
+func NeuronMutateWeights(neuron *ng.Neuron) (bool, MutateResult) {
 	didPerturbAnyWeights := false
 	probability := parameterPerturbProbability(neuron)
 	for _, cxn := range neuron.Inbound {
@@ -434,7 +435,7 @@ func NeuronMutateWeights(neuron *ng.Neuron) bool {
 			didPerturbAnyWeights = true
 		}
 	}
-	return didPerturbAnyWeights
+	return didPerturbAnyWeights, nil
 }
 
 func NeuronMutateActivation(neuron *ng.Neuron) {
@@ -468,35 +469,35 @@ func NeuronResetWeights(neuron *ng.Neuron) {
 	}
 }
 
-func NeuronAddBias(neuron *ng.Neuron) bool {
+func NeuronAddBias(neuron *ng.Neuron) (bool, MutateResult) {
 	if neuron.Bias == 0 {
 		neuron.Bias = RandomBias()
-		return true
+		return true, nil
 	}
-	return false
+	return false, nil
 }
 
-func NeuronRemoveBias(neuron *ng.Neuron) bool {
+func NeuronRemoveBias(neuron *ng.Neuron) (bool, MutateResult) {
 	if neuron.Bias != 0 {
 		neuron.Bias = 0
-		return true
+		return true, nil
 	}
-	return false
+	return false, nil
 }
 
-func RandomNeuronMutator(cortex *ng.Cortex, neuronMutator NeuronMutator) bool {
+func RandomNeuronMutator(cortex *ng.Cortex, neuronMutator NeuronMutator) (bool, MutateResult) {
 	neuron := randomNeuron(cortex)
 	return neuronMutator(neuron)
 }
 
-func AddBias(cortex *ng.Cortex) bool {
+func AddBias(cortex *ng.Cortex) (bool, MutateResult) {
 	return RandomNeuronMutator(cortex, NeuronAddBias)
 }
 
-func RemoveBias(cortex *ng.Cortex) bool {
+func RemoveBias(cortex *ng.Cortex) (bool, MutateResult) {
 	return RandomNeuronMutator(cortex, NeuronRemoveBias)
 }
 
-func MutateWeights(cortex *ng.Cortex) bool {
+func MutateWeights(cortex *ng.Cortex) (bool, MutateResult) {
 	return RandomNeuronMutator(cortex, NeuronMutateWeights)
 }

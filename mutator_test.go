@@ -559,7 +559,7 @@ func TestNeuronMutateWeights(t *testing.T) {
 	foundModifiedWeight := false
 	for i := 0; i < 100; i++ {
 
-		didMutateWeights := NeuronMutateWeights(neuron)
+		didMutateWeights, _ := NeuronMutateWeights(neuron)
 		if didMutateWeights == true {
 
 			foundModifiedWeight = verifyWeightsModified(neuron, neuronCopy)
