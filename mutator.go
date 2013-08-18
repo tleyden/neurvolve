@@ -8,6 +8,16 @@ import (
 type OutboundChooser func(*ng.Neuron) *ng.OutboundConnection
 type NeuronMutator func(*ng.Neuron) (bool, MutateResult)
 type MutateResult interface{}
+type CortexMutator func(*ng.Cortex) (bool, MutateResult)
+
+func AllCortexMutators() []CortexMutator {
+	mutators := []CortexMutator{
+		AddBias,
+		RemoveBias,
+		MutateWeights,
+	}
+	return mutators
+}
 
 func inboundConnectionCandidates(neuron *ng.Neuron) []*ng.NodeId {
 
@@ -461,12 +471,13 @@ func NeuronMutateActivation(neuron *ng.Neuron) {
 
 }
 
-func NeuronResetWeights(neuron *ng.Neuron) {
+func NeuronResetWeights(neuron *ng.Neuron) (bool, MutateResult) {
 	for _, cxn := range neuron.Inbound {
 		for j, _ := range cxn.Weights {
 			cxn.Weights[j] = RandomWeight()
 		}
 	}
+	return true, nil
 }
 
 func NeuronAddBias(neuron *ng.Neuron) (bool, MutateResult) {
@@ -485,9 +496,9 @@ func NeuronRemoveBias(neuron *ng.Neuron) (bool, MutateResult) {
 	return false, nil
 }
 
-func RandomNeuronMutator(cortex *ng.Cortex, neuronMutator NeuronMutator) (bool, MutateResult) {
-	neuron := randomNeuron(cortex)
-	return neuronMutator(neuron)
+func RandomNeuronMutator(c *ng.Cortex, mutator NeuronMutator) (bool, MutateResult) {
+	neuron := randomNeuron(c)
+	return mutator(neuron)
 }
 
 func AddBias(cortex *ng.Cortex) (bool, MutateResult) {
@@ -500,4 +511,8 @@ func RemoveBias(cortex *ng.Cortex) (bool, MutateResult) {
 
 func MutateWeights(cortex *ng.Cortex) (bool, MutateResult) {
 	return RandomNeuronMutator(cortex, NeuronMutateWeights)
+}
+
+func ResetWeights(cortex *ng.Cortex) (bool, MutateResult) {
+	return RandomNeuronMutator(cortex, NeuronResetWeights)
 }

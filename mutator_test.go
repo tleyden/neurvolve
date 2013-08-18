@@ -684,3 +684,11 @@ func TestMutateWeights(t *testing.T) {
 	afterString := ng.JsonString(xnorCortex)
 	assert.True(t, beforeString != afterString)
 }
+
+func TestResetWeights(t *testing.T) {
+	xnorCortex := ng.XnorCortex()
+	beforeString := ng.JsonString(xnorCortex)
+	ResetWeights(xnorCortex)
+	afterString := ng.JsonString(xnorCortex)
+	assert.True(t, beforeString != afterString)
+}
