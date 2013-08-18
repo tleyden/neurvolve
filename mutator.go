@@ -15,6 +15,8 @@ func AllCortexMutators() []CortexMutator {
 		AddBias,
 		RemoveBias,
 		MutateWeights,
+		ResetWeights,
+		MutateActivation,
 	}
 	return mutators
 }
@@ -448,7 +450,7 @@ func NeuronMutateWeights(neuron *ng.Neuron) (bool, MutateResult) {
 	return didPerturbAnyWeights, nil
 }
 
-func NeuronMutateActivation(neuron *ng.Neuron) {
+func NeuronMutateActivation(neuron *ng.Neuron) (bool, MutateResult) {
 
 	encodableActivations := ng.AllEncodableActivations()
 
@@ -462,12 +464,12 @@ func NeuronMutateActivation(neuron *ng.Neuron) {
 		// if we chose a different activation than current one, use it
 		if chosenActivation.Name != neuron.ActivationFunction.Name {
 			neuron.ActivationFunction = chosenActivation
-			return
+			return true, nil
 		}
 	}
 
 	// if we got this far, something went wrong
-	log.Panicf("Unable to mutate activation function for neuron: %v", neuron)
+	return false, nil
 
 }
 
@@ -515,4 +517,8 @@ func MutateWeights(cortex *ng.Cortex) (bool, MutateResult) {
 
 func ResetWeights(cortex *ng.Cortex) (bool, MutateResult) {
 	return RandomNeuronMutator(cortex, NeuronResetWeights)
+}
+
+func MutateActivation(cortex *ng.Cortex) (bool, MutateResult) {
+	return RandomNeuronMutator(cortex, NeuronMutateActivation)
 }

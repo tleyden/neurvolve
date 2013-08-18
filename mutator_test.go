@@ -677,18 +677,22 @@ func TestAddBias(t *testing.T) {
 	assert.True(t, beforeString != afterString)
 }
 
-func TestMutateWeights(t *testing.T) {
-	xnorCortex := ng.XnorCortex()
-	beforeString := ng.JsonString(xnorCortex)
-	MutateWeights(xnorCortex)
-	afterString := ng.JsonString(xnorCortex)
-	assert.True(t, beforeString != afterString)
-}
+func TestMutatorsThatAlwaysMutate(t *testing.T) {
 
-func TestResetWeights(t *testing.T) {
 	xnorCortex := ng.XnorCortex()
-	beforeString := ng.JsonString(xnorCortex)
-	ResetWeights(xnorCortex)
-	afterString := ng.JsonString(xnorCortex)
-	assert.True(t, beforeString != afterString)
+	cortexMutators := []CortexMutator{
+		RemoveBias,
+		MutateWeights,
+		ResetWeights,
+		MutateActivation,
+	}
+	for _, cortexMutator := range cortexMutators {
+		beforeString := ng.JsonString(xnorCortex)
+		ok, _ := cortexMutator(xnorCortex)
+		assert.True(t, ok)
+		afterString := ng.JsonString(xnorCortex)
+		assert.True(t, beforeString != afterString)
+
+	}
+
 }
