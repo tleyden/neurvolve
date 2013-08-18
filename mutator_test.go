@@ -676,3 +676,11 @@ func TestAddBias(t *testing.T) {
 	afterString := ng.JsonString(xnorCortex)
 	assert.True(t, beforeString != afterString)
 }
+
+func TestMutateWeights(t *testing.T) {
+	xnorCortex := ng.XnorCortex()
+	beforeString := ng.JsonString(xnorCortex)
+	MutateWeights(xnorCortex)
+	afterString := ng.JsonString(xnorCortex)
+	assert.True(t, beforeString != afterString)
+}
