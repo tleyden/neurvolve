@@ -23,14 +23,16 @@ func CortexMutatorsCommon() []CortexMutator {
 
 func CortexMutatorsRecurrent() []CortexMutator {
 	mutators := []CortexMutator{
-	// AddNeuronRecurrent,
+		// AddNeuronRecurrent,
+		AddInlinkRecurrent,
 	}
 	return mutators
 }
 
 func CortexMutatorsNonRecurrent() []CortexMutator {
 	mutators := []CortexMutator{
-	// AddNeuronNonRecurrent,
+		// AddNeuronNonRecurrent,
+		AddInlinkNonRecurrent,
 	}
 	return mutators
 }
@@ -539,4 +541,8 @@ func MutateActivation(cortex *ng.Cortex) (bool, MutateResult) {
 
 func AddInlinkRecurrent(cortex *ng.Cortex) (bool, MutateResult) {
 	return RandomNeuronMutator(cortex, NeuronAddInlinkRecurrent)
+}
+
+func AddInlinkNonRecurrent(cortex *ng.Cortex) (bool, MutateResult) {
+	return RandomNeuronMutator(cortex, NeuronAddInlinkNonRecurrent)
 }

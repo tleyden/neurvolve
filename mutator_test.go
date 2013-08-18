@@ -695,6 +695,7 @@ func TestMutatorsThatAlwaysMutate(t *testing.T) {
 		ResetWeights,
 		MutateActivation,
 		AddInlinkRecurrent,
+		AddInlinkNonRecurrent,
 	}
 	for _, cortexMutator := range cortexMutators {
 		beforeString := ng.JsonString(xnorCortex)
