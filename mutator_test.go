@@ -366,7 +366,11 @@ func TestNeuronAddInlinkRecurrent(t *testing.T) {
 	for i := 0; i < 100; i++ {
 		xnorCortex := ng.XnorCortex()
 		neuron := xnorCortex.NeuronUUIDMap()["output-neuron"]
-		inboundConnection := NeuronAddInlinkRecurrent(neuron)
+		ok, mutateResult := NeuronAddInlinkRecurrent(neuron)
+		if !ok {
+			continue
+		}
+		inboundConnection := mutateResult.(*ng.InboundConnection)
 		if neuron.IsInboundConnectionRecurrent(inboundConnection) {
 
 			log.Printf("added inboundConnection: %v", inboundConnection)
@@ -436,7 +440,12 @@ func TestNeuronAddInlinkNonRecurrent(t *testing.T) {
 		sensor.ConnectOutbound(hiddenNeuron3)
 		hiddenNeuron3.ConnectInboundWeighted(sensor, weights)
 
-		inboundConnection := NeuronAddInlinkNonRecurrent(neuron)
+		ok, mutateResult := NeuronAddInlinkNonRecurrent(neuron)
+		if !ok {
+			continue
+		}
+		inboundConnection := mutateResult.(*ng.InboundConnection)
+
 		log.Printf("new inbound: %v", inboundConnection)
 		if neuron.IsInboundConnectionRecurrent(inboundConnection) {
 			madeRecurrentInlink = true
@@ -685,6 +694,7 @@ func TestMutatorsThatAlwaysMutate(t *testing.T) {
 		MutateWeights,
 		ResetWeights,
 		MutateActivation,
+		AddInlinkRecurrent,
 	}
 	for _, cortexMutator := range cortexMutators {
 		beforeString := ng.JsonString(xnorCortex)

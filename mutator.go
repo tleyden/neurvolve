@@ -10,13 +10,27 @@ type NeuronMutator func(*ng.Neuron) (bool, MutateResult)
 type MutateResult interface{}
 type CortexMutator func(*ng.Cortex) (bool, MutateResult)
 
-func AllCortexMutators() []CortexMutator {
+func CortexMutatorsCommon() []CortexMutator {
 	mutators := []CortexMutator{
 		AddBias,
 		RemoveBias,
 		MutateWeights,
 		ResetWeights,
 		MutateActivation,
+	}
+	return mutators
+}
+
+func CortexMutatorsRecurrent() []CortexMutator {
+	mutators := []CortexMutator{
+	// AddNeuronRecurrent,
+	}
+	return mutators
+}
+
+func CortexMutatorsNonRecurrent() []CortexMutator {
+	mutators := []CortexMutator{
+	// AddNeuronNonRecurrent,
 	}
 	return mutators
 }
@@ -266,7 +280,7 @@ func findDownstreamNodeId(cortex *ng.Cortex, layerMap ng.LayerToNodeIdMap, fromL
 
 }
 
-func NeuronAddInlinkNonRecurrent(neuron *ng.Neuron) *ng.InboundConnection {
+func NeuronAddInlinkNonRecurrent(neuron *ng.Neuron) (bool, MutateResult) {
 	availableNodeIds := inboundConnectionCandidates(neuron)
 
 	// remove any node id's which have a layer index >= neuron.LayerIndex
@@ -281,7 +295,7 @@ func NeuronAddInlinkNonRecurrent(neuron *ng.Neuron) *ng.InboundConnection {
 	return neuronAddInlink(neuron, nonRecurrentNodeIds)
 }
 
-func NeuronAddInlinkRecurrent(neuron *ng.Neuron) *ng.InboundConnection {
+func NeuronAddInlinkRecurrent(neuron *ng.Neuron) (bool, MutateResult) {
 
 	// choose a random element B, where element B is another
 	// neuron or a sensor which is not already connected
@@ -290,16 +304,16 @@ func NeuronAddInlinkRecurrent(neuron *ng.Neuron) *ng.InboundConnection {
 	return neuronAddInlink(neuron, availableNodeIds)
 }
 
-func neuronAddInlink(neuron *ng.Neuron, availableNodeIds []*ng.NodeId) *ng.InboundConnection {
+func neuronAddInlink(neuron *ng.Neuron, availableNodeIds []*ng.NodeId) (bool, *ng.InboundConnection) {
 
 	if len(availableNodeIds) == 0 {
 		log.Printf("Warning: unable to add inlink to neuron: %v", neuron)
-		return nil
+		return false, nil
 	}
 
 	randIndex := ng.RandomIntInRange(0, len(availableNodeIds))
 	chosenNodeId := availableNodeIds[randIndex]
-	return neuronAddInlinkFrom(neuron, chosenNodeId)
+	return true, neuronAddInlinkFrom(neuron, chosenNodeId)
 
 }
 
@@ -521,4 +535,8 @@ func ResetWeights(cortex *ng.Cortex) (bool, MutateResult) {
 
 func MutateActivation(cortex *ng.Cortex) (bool, MutateResult) {
 	return RandomNeuronMutator(cortex, NeuronMutateActivation)
+}
+
+func AddInlinkRecurrent(cortex *ng.Cortex) (bool, MutateResult) {
+	return RandomNeuronMutator(cortex, NeuronAddInlinkRecurrent)
 }
