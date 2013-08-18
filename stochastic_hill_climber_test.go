@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/couchbaselabs/go.assert"
 	ng "github.com/tleyden/neurgo"
-	"log"
 	"testing"
 )
 
@@ -15,7 +14,6 @@ func TestPerturbParameters(t *testing.T) {
 
 	nnJson, _ := json.Marshal(cortex)
 	nnJsonString := fmt.Sprintf("%s", nnJson)
-	log.Printf("before: %s", nnJsonString)
 
 	shc := new(StochasticHillClimber)
 
@@ -23,7 +21,6 @@ func TestPerturbParameters(t *testing.T) {
 
 	nnJsonAfter, _ := json.Marshal(cortex)
 	nnJsonStringAfter := fmt.Sprintf("%s", nnJsonAfter)
-	log.Printf("before: %s", nnJsonStringAfter)
 
 	// the json should be different after we perturb it
 	assert.NotEquals(t, nnJsonString, nnJsonStringAfter)
