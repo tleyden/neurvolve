@@ -380,17 +380,17 @@ func outboundConnectionCandidates(neuron *ng.Neuron) []*ng.NodeId {
 
 }
 
-func neuronAddOutlink(neuron *ng.Neuron, availableNodeIds []*ng.NodeId) *ng.OutboundConnection {
+func neuronAddOutlink(neuron *ng.Neuron, availableNodeIds []*ng.NodeId) (bool, *ng.OutboundConnection) {
 
 	if len(availableNodeIds) == 0 {
-		log.Printf("Warning: unable to add inlink to neuron: %v", neuron)
-		return nil
+		log.Printf("Warning: unable to add outlink to neuron: %v", neuron)
+		return false, nil
 	}
 
 	randIndex := ng.RandomIntInRange(0, len(availableNodeIds))
 	chosenNodeId := availableNodeIds[randIndex]
 
-	return neuronAddOutlinkTo(neuron, chosenNodeId)
+	return true, neuronAddOutlinkTo(neuron, chosenNodeId)
 
 }
 
@@ -428,7 +428,7 @@ func neuronAddOutlinkTo(neuron *ng.Neuron, targetNodeId *ng.NodeId) *ng.Outbound
 
 }
 
-func NeuronAddOutlinkRecurrent(neuron *ng.Neuron) *ng.OutboundConnection {
+func NeuronAddOutlinkRecurrent(neuron *ng.Neuron) (bool, MutateResult) {
 
 	// choose a random element B, where element B is another
 	// neuron or a sensor which is not already connected
@@ -437,7 +437,7 @@ func NeuronAddOutlinkRecurrent(neuron *ng.Neuron) *ng.OutboundConnection {
 	return neuronAddOutlink(neuron, availableNodeIds)
 }
 
-func NeuronAddOutlinkNonRecurrent(neuron *ng.Neuron) *ng.OutboundConnection {
+func NeuronAddOutlinkNonRecurrent(neuron *ng.Neuron) (bool, MutateResult) {
 
 	availableNodeIds := outboundConnectionCandidates(neuron)
 
@@ -519,6 +519,20 @@ func RandomNeuronMutator(c *ng.Cortex, mutator NeuronMutator) (bool, MutateResul
 	return mutator(neuron)
 }
 
+func ReattemptingNeuronMutator(c *ng.Cortex, mutator NeuronMutator) (bool, MutateResult) {
+
+	numAttempts := len(c.AllNodeIds()) * 5
+
+	for i := 0; i < numAttempts; i++ {
+		neuron := randomNeuron(c)
+		ok, mutateResult := mutator(neuron)
+		if ok {
+			return ok, mutateResult
+		}
+	}
+	return false, nil
+}
+
 func AddBias(cortex *ng.Cortex) (bool, MutateResult) {
 	return RandomNeuronMutator(cortex, NeuronAddBias)
 }
@@ -540,9 +554,17 @@ func MutateActivation(cortex *ng.Cortex) (bool, MutateResult) {
 }
 
 func AddInlinkRecurrent(cortex *ng.Cortex) (bool, MutateResult) {
-	return RandomNeuronMutator(cortex, NeuronAddInlinkRecurrent)
+	return ReattemptingNeuronMutator(cortex, NeuronAddInlinkRecurrent)
 }
 
 func AddInlinkNonRecurrent(cortex *ng.Cortex) (bool, MutateResult) {
-	return RandomNeuronMutator(cortex, NeuronAddInlinkNonRecurrent)
+	return ReattemptingNeuronMutator(cortex, NeuronAddInlinkNonRecurrent)
+}
+
+func AddOutlinkRecurrent(cortex *ng.Cortex) (bool, MutateResult) {
+	return ReattemptingNeuronMutator(cortex, NeuronAddOutlinkRecurrent)
+}
+
+func AddOutlinkNonRecurrent(cortex *ng.Cortex) (bool, MutateResult) {
+	return ReattemptingNeuronMutator(cortex, NeuronAddOutlinkNonRecurrent)
 }

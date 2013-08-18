@@ -489,7 +489,11 @@ func TestNeuronAddOutlinkNonRecurrent(t *testing.T) {
 	for i := 0; i < 100; i++ {
 		xnorCortex := testCortex()
 		neuron := xnorCortex.NeuronUUIDMap()["hidden-neuron1"]
-		outboundConnection := NeuronAddOutlinkNonRecurrent(neuron)
+		ok, mutateResult := NeuronAddOutlinkNonRecurrent(neuron)
+		if !ok {
+			continue
+		}
+		outboundConnection := mutateResult.(*ng.OutboundConnection)
 		log.Printf("outbound: %v", outboundConnection)
 		if neuron.IsConnectionRecurrent(outboundConnection) {
 			madeRecurrentLink = true
@@ -518,7 +522,12 @@ func TestNeuronAddOutlinkRecurrent(t *testing.T) {
 
 		numOutlinksBefore := len(neuron.Outbound)
 
-		outboundConnection := NeuronAddOutlinkRecurrent(neuron)
+		ok, mutateResult := NeuronAddOutlinkRecurrent(neuron)
+		if !ok {
+			continue
+		}
+		outboundConnection := mutateResult.(*ng.OutboundConnection)
+
 		numOutlinksAfter := len(neuron.Outbound)
 
 		assert.Equals(t, numOutlinksBefore+1, numOutlinksAfter)
@@ -688,7 +697,7 @@ func TestAddBias(t *testing.T) {
 
 func TestMutatorsThatAlwaysMutate(t *testing.T) {
 
-	xnorCortex := ng.XnorCortex()
+	testCortex := testCortex()
 	cortexMutators := []CortexMutator{
 		RemoveBias,
 		MutateWeights,
@@ -696,13 +705,20 @@ func TestMutatorsThatAlwaysMutate(t *testing.T) {
 		MutateActivation,
 		AddInlinkRecurrent,
 		AddInlinkNonRecurrent,
+		AddOutlinkRecurrent,
+		AddOutlinkNonRecurrent,
 	}
-	for _, cortexMutator := range cortexMutators {
-		beforeString := ng.JsonString(xnorCortex)
-		ok, _ := cortexMutator(xnorCortex)
+	for i, cortexMutator := range cortexMutators {
+		log.Printf("TestMutatorsThatAlwaysMutate: %v", i)
+		beforeString := ng.JsonString(testCortex)
+		ok, _ := cortexMutator(testCortex)
 		assert.True(t, ok)
-		afterString := ng.JsonString(xnorCortex)
-		assert.True(t, beforeString != afterString)
+		afterString := ng.JsonString(testCortex)
+		hasChanged := beforeString != afterString
+		if !hasChanged {
+			log.Printf("!hasChanged.  beforeString/afterString: %v", beforeString)
+		}
+		assert.True(t, hasChanged)
 
 	}
 
