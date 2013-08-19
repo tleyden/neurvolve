@@ -26,15 +26,13 @@ func RunTopologyMutatingTrainer() {
 
 	tmt := &nv.TopologyMutatingTrainer{
 		FitnessThreshold:           ng.FITNESS_THRESHOLD,
-		MaxAttempts:                25,
+		MaxAttempts:                100,
 		MaxIterationsBeforeRestart: 5,
 		NumOutputLayerNodes:        1,
 	}
 	cortexTrained, succeeded := tmt.Train(cortex, examples)
 	if succeeded {
-		nnJson, _ := json.Marshal(cortex)
-		nnJsonString := fmt.Sprintf("%s", nnJson)
-		log.Printf("Successfully trained net: %v", nnJsonString)
+		log.Printf("Successfully trained net: %v", ng.JsonString(cortexTrained))
 	}
 	if !succeeded {
 		panic("failed to train neural net")
