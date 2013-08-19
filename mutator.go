@@ -45,7 +45,14 @@ func CortexMutatorsNonRecurrent() []CortexMutator {
 
 func inboundConnectionCandidates(neuron *ng.Neuron) []*ng.NodeId {
 
+	if neuron == nil {
+		log.Panicf("neuron is nil")
+	}
 	cortex := neuron.Cortex
+	if cortex == nil {
+		log.Panicf("neuron has no cortex associated: %v", neuron)
+	}
+
 	neuronNodeIds := cortex.NeuronNodeIds()
 	sensorNodeIds := cortex.SensorNodeIds()
 	availableNodeIds := append(neuronNodeIds, sensorNodeIds...)
