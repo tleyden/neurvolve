@@ -1,8 +1,6 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
 	ng "github.com/tleyden/neurgo"
 	nv "github.com/tleyden/neurvolve"
 	"log"
