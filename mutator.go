@@ -252,7 +252,6 @@ func findRecurrentOutboundNodeId(cortex *ng.Cortex, layerMap ng.LayerToNodeIdMap
 
 	for i := 0; i < numAttempts; i++ {
 		chosenNodeId := layerMap.ChooseNodeIdFollowingLayer(sensorLayer)
-		log.Printf("chosenNodeId: %v", chosenNodeId)
 		if chosenNodeId.NodeType == ng.ACTUATOR {
 			// make sure it has capacity for new incoming
 			actuator := cortex.FindActuator(chosenNodeId)

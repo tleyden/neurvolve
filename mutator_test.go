@@ -381,8 +381,6 @@ func TestNeuronAddInlinkRecurrent(t *testing.T) {
 		inboundConnection := mutateResult.(*ng.InboundConnection)
 		if neuron.IsInboundConnectionRecurrent(inboundConnection) {
 
-			log.Printf("added inboundConnection: %v", inboundConnection)
-
 			// the first time we make a nonRecurrentInlink,
 			// test the network out
 			if madeRecurrentInlink == false {
@@ -454,7 +452,6 @@ func TestNeuronAddInlinkNonRecurrent(t *testing.T) {
 		}
 		inboundConnection := mutateResult.(*ng.InboundConnection)
 
-		log.Printf("new inbound: %v", inboundConnection)
 		if neuron.IsInboundConnectionRecurrent(inboundConnection) {
 			madeRecurrentInlink = true
 		} else {
@@ -502,7 +499,6 @@ func TestNeuronAddOutlinkNonRecurrent(t *testing.T) {
 			continue
 		}
 		outboundConnection := mutateResult.(*ng.OutboundConnection)
-		log.Printf("outbound: %v", outboundConnection)
 		if neuron.IsConnectionRecurrent(outboundConnection) {
 			madeRecurrentLink = true
 		} else {
@@ -721,7 +717,6 @@ func TestMutatorsThatAlwaysMutate(t *testing.T) {
 		OutspliceNonRecurrent,
 	}
 	for i, cortexMutator := range cortexMutators {
-		log.Printf("TestMutatorsThatAlwaysMutate: %v", i)
 		beforeString := ng.JsonString(testCortex)
 		ok, _ := cortexMutator(testCortex)
 		assert.True(t, ok)

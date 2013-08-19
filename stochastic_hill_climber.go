@@ -41,7 +41,6 @@ func (shc *StochasticHillClimber) Train(cortex *ng.Cortex, examples []*ng.Traini
 		if candidateFitness > fitness {
 			fittestNeuralNet = candidateNeuralNet
 			fitness = candidateFitness
-			log.Printf("fitness: %f.  attempt #:%d", fitness, i)
 		}
 
 		if ng.IntModuloProper(i, shc.MaxIterationsBeforeRestart) {
