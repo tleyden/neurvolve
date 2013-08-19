@@ -32,6 +32,13 @@ func (tmt *TopologyMutatingTrainer) Train(cortex *ng.Cortex, examples []*ng.Trai
 	for i := 0; ; i++ {
 
 		log.Printf("before mutate.  i/max: %d/%d", i, tmt.MaxAttempts)
+		log.Printf("cortex: %v", ng.JsonString(currentCortex))
+
+		// before we mutate the cortex, we need to init it,
+		// otherwise things like Outsplice will fail because
+		// there are no DataChan's.
+		shouldReInit := false
+		currentCortex.Init(shouldReInit)
 
 		// mutate the network
 		randInt := RandomIntInRange(0, len(mutators))
@@ -42,15 +49,17 @@ func (tmt *TopologyMutatingTrainer) Train(cortex *ng.Cortex, examples []*ng.Trai
 			continue
 		}
 
-		log.Printf("after mutate.")
+		log.Printf("after mutate. cortex: %v", ng.JsonString(currentCortex))
+		log.Printf("run stochastic hill climber")
 
 		// memetic step: call stochastic hill climber and see if it can solve it
 		shc := &StochasticHillClimber{
 			FitnessThreshold:           ng.FITNESS_THRESHOLD,
-			MaxIterationsBeforeRestart: 100000,
-			MaxAttempts:                4000000,
+			MaxIterationsBeforeRestart: 1000,
+			MaxAttempts:                40000,
 		}
 		fittestCortex, succeeded = shc.Train(currentCortex, examples)
+		log.Printf("stochastic hill climber finished.  succeeded: %v", succeeded)
 
 		if succeeded {
 			succeeded = true
