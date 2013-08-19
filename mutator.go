@@ -355,7 +355,13 @@ func neuronAddInlinkFrom(neuron *ng.Neuron, sourceNodeId *ng.NodeId) *ng.Inbound
 
 func outboundConnectionCandidates(neuron *ng.Neuron) []*ng.NodeId {
 
+	if neuron == nil {
+		log.Panicf("Neuron is nil")
+	}
 	cortex := neuron.Cortex
+	if cortex == nil {
+		log.Panicf("Neuron has no cortex associated with it: %v", neuron)
+	}
 	neuronNodeIds := cortex.NeuronNodeIds()
 	actuatorNodeIds := cortex.ActuatorNodeIds()
 	availableNodeIds := append(neuronNodeIds, actuatorNodeIds...)
