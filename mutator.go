@@ -22,23 +22,25 @@ func CortexMutatorsCommon() []CortexMutator {
 }
 
 func CortexMutatorsRecurrent() []CortexMutator {
-	mutators := []CortexMutator{
+	recurrentMutators := []CortexMutator{
 		AddNeuronRecurrent,
 		AddInlinkRecurrent,
 		AddOutlinkRecurrent,
 		OutspliceRecurrent,
 	}
-	return mutators
+	commonMutators := CortexMutatorsCommon()
+	return append(recurrentMutators, commonMutators...)
 }
 
 func CortexMutatorsNonRecurrent() []CortexMutator {
-	mutators := []CortexMutator{
+	nonRecurrentMutators := []CortexMutator{
 		AddNeuronNonRecurrent,
 		AddInlinkNonRecurrent,
 		AddOutlinkNonRecurrent,
 		OutspliceNonRecurrent,
 	}
-	return mutators
+	commonMutators := CortexMutatorsCommon()
+	return append(nonRecurrentMutators, commonMutators...)
 }
 
 func inboundConnectionCandidates(neuron *ng.Neuron) []*ng.NodeId {
