@@ -23,16 +23,20 @@ func CortexMutatorsCommon() []CortexMutator {
 
 func CortexMutatorsRecurrent() []CortexMutator {
 	mutators := []CortexMutator{
-		// AddNeuronRecurrent,
+		AddNeuronRecurrent,
 		AddInlinkRecurrent,
+		AddOutlinkRecurrent,
+		OutspliceRecurrent,
 	}
 	return mutators
 }
 
 func CortexMutatorsNonRecurrent() []CortexMutator {
 	mutators := []CortexMutator{
-		// AddNeuronNonRecurrent,
+		AddNeuronNonRecurrent,
 		AddInlinkNonRecurrent,
+		AddOutlinkNonRecurrent,
+		OutspliceNonRecurrent,
 	}
 	return mutators
 }
@@ -65,31 +69,75 @@ func inboundConnectionCandidates(neuron *ng.Neuron) []*ng.NodeId {
 
 }
 
-func AddNeuronNonRecurrent(cortex *ng.Cortex) *ng.Neuron {
+func AddNeuronNonRecurrent(cortex *ng.Cortex) (bool, MutateResult) {
 
-	nodeIdLayerMap := cortex.NodeIdLayerMap()
-	neuronLayerMap := cortex.NeuronLayerMap()
-	randomLayer := neuronLayerMap.ChooseRandomLayer()
-	neuron := cortex.CreateNeuronInLayer(randomLayer)
-	upstreamNodeId := nodeIdLayerMap.ChooseNodeIdPrecedingLayer(randomLayer)
-	if upstreamNodeId == nil {
-		log.Printf("Unable to find upstream neuron, cannot add neuron")
-		return nil
+	numAttempts := len(cortex.AllNodeIds())
+
+	for i := 0; i < numAttempts; i++ {
+
+		nodeIdLayerMap := cortex.NodeIdLayerMap()
+		neuronLayerMap := cortex.NeuronLayerMap()
+		randomLayer := neuronLayerMap.ChooseRandomLayer()
+
+		upstreamNodeId := nodeIdLayerMap.ChooseNodeIdPrecedingLayer(randomLayer)
+		if upstreamNodeId == nil {
+			continue
+		}
+
+		downstreamNodeId := findDownstreamNodeId(cortex, nodeIdLayerMap, randomLayer)
+		if downstreamNodeId == nil {
+			continue
+		}
+
+		neuron := cortex.CreateNeuronInLayer(randomLayer)
+		neuronAddInlinkFrom(neuron, upstreamNodeId)
+		neuronAddOutlinkTo(neuron, downstreamNodeId)
+
+		return true, neuron
+
 	}
-
-	downstreamNodeId := findDownstreamNodeId(cortex, nodeIdLayerMap, randomLayer)
-	if downstreamNodeId == nil {
-		log.Printf("Unable to find downstream neuron, cannot add neuron")
-		return nil
-	}
-
-	neuronAddInlinkFrom(neuron, upstreamNodeId)
-	neuronAddOutlinkTo(neuron, downstreamNodeId)
-
-	return neuron
+	return false, nil
 }
 
-func Outsplice(cortex *ng.Cortex, chooseOutbound OutboundChooser) *ng.Neuron {
+func AddNeuronRecurrent(cortex *ng.Cortex) (bool, MutateResult) {
+
+	numAttempts := len(cortex.AllNodeIds())
+
+	for i := 0; i < numAttempts; i++ {
+
+		nodeIdLayerMap := cortex.NodeIdLayerMap()
+		neuronLayerMap := cortex.NeuronLayerMap()
+		randomLayer := neuronLayerMap.ChooseRandomLayer()
+		neuron := cortex.CreateNeuronInLayer(randomLayer)
+		inboundNodeId := findRecurrentInboundNodeId(cortex,
+			nodeIdLayerMap,
+			randomLayer)
+
+		if inboundNodeId == nil {
+			log.Printf("Warn: unable to find inbound node id")
+			continue
+		}
+
+		outboundNodeId := findRecurrentOutboundNodeId(cortex,
+			nodeIdLayerMap,
+			randomLayer)
+
+		if outboundNodeId == nil {
+			log.Printf("Warn: unable to find outbound node id")
+			continue
+		}
+
+		neuronAddInlinkFrom(neuron, inboundNodeId)
+		neuronAddOutlinkTo(neuron, outboundNodeId)
+
+		return true, neuron
+
+	}
+	return false, nil
+
+}
+
+func Outsplice(cortex *ng.Cortex, chooseOutbound OutboundChooser) (bool, *ng.Neuron) {
 
 	numAttempts := len(cortex.AllNodeIds())
 
@@ -132,19 +180,19 @@ func Outsplice(cortex *ng.Cortex, chooseOutbound OutboundChooser) *ng.Neuron {
 			ng.ConnectOutbound(neuronK, actuatorB)
 			ng.ConnectInbound(nodeBConnector, neuronK)
 		}
-		return neuronK
+		return true, neuronK
 
 	}
-	return nil
+	return false, nil
 
 }
 
-func OutspliceRecurrent(cortex *ng.Cortex) *ng.Neuron {
+func OutspliceRecurrent(cortex *ng.Cortex) (bool, MutateResult) {
 	chooseOutboundFunction := randomOutbound
 	return Outsplice(cortex, chooseOutboundFunction)
 }
 
-func OutspliceNonRecurrent(cortex *ng.Cortex) *ng.Neuron {
+func OutspliceNonRecurrent(cortex *ng.Cortex) (bool, MutateResult) {
 	chooseOutboundFunction := randomNonRecurrentOutbound
 	return Outsplice(cortex, chooseOutboundFunction)
 }
@@ -174,44 +222,6 @@ func randomNeuron(cortex *ng.Cortex) *ng.Neuron {
 	neurons := cortex.Neurons
 	randIndex := RandomIntInRange(0, len(neurons))
 	return neurons[randIndex]
-}
-
-func AddNeuronRecurrent(cortex *ng.Cortex) *ng.Neuron {
-
-	numAttempts := len(cortex.AllNodeIds())
-
-	for i := 0; i < numAttempts; i++ {
-
-		nodeIdLayerMap := cortex.NodeIdLayerMap()
-		neuronLayerMap := cortex.NeuronLayerMap()
-		randomLayer := neuronLayerMap.ChooseRandomLayer()
-		neuron := cortex.CreateNeuronInLayer(randomLayer)
-		inboundNodeId := findRecurrentInboundNodeId(cortex,
-			nodeIdLayerMap,
-			randomLayer)
-
-		if inboundNodeId == nil {
-			log.Printf("Warn: unable to find inbound node id")
-			continue
-		}
-
-		outboundNodeId := findRecurrentOutboundNodeId(cortex,
-			nodeIdLayerMap,
-			randomLayer)
-
-		if outboundNodeId == nil {
-			log.Printf("Warn: unable to find outbound node id")
-			continue
-		}
-
-		neuronAddInlinkFrom(neuron, inboundNodeId)
-		neuronAddOutlinkTo(neuron, outboundNodeId)
-
-		return neuron
-
-	}
-	return nil
-
 }
 
 // Find a nodeId suitable for use as an inbound node for a newly created
@@ -265,7 +275,7 @@ func findDownstreamNodeId(cortex *ng.Cortex, layerMap ng.LayerToNodeIdMap, fromL
 		downstreamNodeId := layerMap.ChooseNodeIdFollowingLayer(fromLayer)
 
 		if downstreamNodeId == nil {
-			log.Printf("Unable to find downstream neuron, cannot add neuron")
+			log.Printf("findDownstreamNodeId unable to find downstream neuron, cannot add neuron")
 			return nil
 		}
 		if downstreamNodeId.NodeType == ng.ACTUATOR {

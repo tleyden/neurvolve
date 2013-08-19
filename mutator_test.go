@@ -195,9 +195,10 @@ func TestOutspliceRecurrent(t *testing.T) {
 		cortex := testCortexRecurrent()
 		numNeuronsBefore := len(cortex.Neurons)
 		neuronLayerMapBefore := cortex.NeuronLayerMap()
-		neuron := OutspliceRecurrent(cortex)
+		ok, mutateResult := OutspliceRecurrent(cortex)
+		neuron := mutateResult.(*ng.Neuron)
 
-		if neuron == nil {
+		if !ok {
 			continue
 		} else {
 			numOutspliced += 1
@@ -245,9 +246,10 @@ func TestOutspliceNonRecurrent(t *testing.T) {
 		cortex := testCortex()
 		numNeuronsBefore := len(cortex.Neurons)
 		neuronLayerMapBefore := cortex.NeuronLayerMap()
-		neuron := OutspliceNonRecurrent(cortex)
+		ok, mutateResult := OutspliceNonRecurrent(cortex)
+		neuron := mutateResult.(*ng.Neuron)
 
-		if neuron == nil {
+		if !ok {
 			continue
 		} else {
 			numOutspliced += 1
@@ -293,16 +295,21 @@ func TestAddNeuronNonRecurrent(t *testing.T) {
 
 		cortex := testCortex()
 		numNeuronsBefore := len(cortex.Neurons)
-		neuron := AddNeuronNonRecurrent(cortex)
+		ok, mutateResult := AddNeuronNonRecurrent(cortex)
+		neuron := mutateResult.(*ng.Neuron)
 
-		if neuron == nil {
+		if !ok {
 			numUnableToAdd += 1
 			continue
 		}
 
 		assert.True(t, neuron.ActivationFunction != nil)
 		numNeuronsAfter := len(cortex.Neurons)
-		assert.Equals(t, numNeuronsAfter, numNeuronsBefore+1)
+		addedNeuron := numNeuronsAfter == numNeuronsBefore+1
+		assert.True(t, addedNeuron)
+		if !addedNeuron {
+			break
+		}
 
 		// should have 1 outbound and inbound
 		assert.Equals(t, len(neuron.Inbound), 1)
@@ -334,9 +341,10 @@ func TestAddNeuronRecurrent(t *testing.T) {
 
 		cortex := testCortex()
 		numNeuronsBefore := len(cortex.Neurons)
-		neuron := AddNeuronRecurrent(cortex)
+		ok, mutateResult := AddNeuronRecurrent(cortex)
+		neuron := mutateResult.(*ng.Neuron)
 
-		if neuron == nil {
+		if !ok {
 			continue
 		} else {
 			numAdded += 1
@@ -707,6 +715,10 @@ func TestMutatorsThatAlwaysMutate(t *testing.T) {
 		AddInlinkNonRecurrent,
 		AddOutlinkRecurrent,
 		AddOutlinkNonRecurrent,
+		AddNeuronNonRecurrent,
+		AddNeuronRecurrent,
+		OutspliceRecurrent,
+		OutspliceNonRecurrent,
 	}
 	for i, cortexMutator := range cortexMutators {
 		log.Printf("TestMutatorsThatAlwaysMutate: %v", i)
@@ -719,6 +731,9 @@ func TestMutatorsThatAlwaysMutate(t *testing.T) {
 			log.Printf("!hasChanged.  beforeString/afterString: %v", beforeString)
 		}
 		assert.True(t, hasChanged)
+		if !hasChanged {
+			break
+		}
 
 	}
 
