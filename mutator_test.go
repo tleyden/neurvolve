@@ -716,7 +716,7 @@ func TestMutatorsThatAlwaysMutate(t *testing.T) {
 		OutspliceRecurrent,
 		OutspliceNonRecurrent,
 	}
-	for i, cortexMutator := range cortexMutators {
+	for _, cortexMutator := range cortexMutators {
 		beforeString := ng.JsonString(testCortex)
 		ok, _ := cortexMutator(testCortex)
 		assert.True(t, ok)
