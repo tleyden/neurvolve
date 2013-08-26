@@ -7,180 +7,6 @@ import (
 	"testing"
 )
 
-func testCortex() *ng.Cortex {
-
-	shouldReInit := false
-
-	sensor := &ng.Sensor{
-		NodeId:       ng.NewSensorId("sensor", 0.0),
-		VectorLength: 2,
-	}
-	sensor.Init(shouldReInit)
-
-	hiddenNeuron1 := &ng.Neuron{
-		ActivationFunction: ng.EncodableSigmoid(),
-		NodeId:             ng.NewNeuronId("hidden-neuron1", 0.15),
-		Bias:               -30,
-	}
-	hiddenNeuron1.Init(shouldReInit)
-
-	hiddenNeuron2 := &ng.Neuron{
-		ActivationFunction: ng.EncodableSigmoid(),
-		NodeId:             ng.NewNeuronId("hidden-neuron2", 0.25),
-		Bias:               10,
-	}
-	hiddenNeuron2.Init(shouldReInit)
-
-	hiddenNeuron3 := &ng.Neuron{
-		ActivationFunction: ng.EncodableSigmoid(),
-		NodeId:             ng.NewNeuronId("hidden-neuron3", 0.35),
-		Bias:               10,
-	}
-	hiddenNeuron3.Init(shouldReInit)
-
-	outputNeuron := &ng.Neuron{
-		ActivationFunction: ng.EncodableSigmoid(),
-		NodeId:             ng.NewNeuronId("output-neuron", 0.45),
-		Bias:               -10,
-	}
-	outputNeuron.Init(shouldReInit)
-
-	actuator := &ng.Actuator{
-		NodeId:       ng.NewActuatorId("actuator", 0.5),
-		VectorLength: 1,
-	}
-	actuator.Init(shouldReInit)
-
-	sensor.ConnectOutbound(hiddenNeuron1)
-	hiddenNeuron1.ConnectInboundWeighted(sensor, []float64{20, 20})
-
-	hiddenNeuron1.ConnectOutbound(hiddenNeuron2)
-	hiddenNeuron2.ConnectInboundWeighted(hiddenNeuron1, []float64{1})
-
-	hiddenNeuron2.ConnectOutbound(hiddenNeuron3)
-	hiddenNeuron3.ConnectInboundWeighted(hiddenNeuron2, []float64{1})
-
-	hiddenNeuron3.ConnectOutbound(outputNeuron)
-	outputNeuron.ConnectInboundWeighted(hiddenNeuron3, []float64{1})
-
-	outputNeuron.ConnectOutbound(actuator)
-	actuator.ConnectInbound(outputNeuron)
-
-	nodeId := ng.NewCortexId("test-cortex")
-
-	cortex := &ng.Cortex{
-		NodeId: nodeId,
-	}
-	cortex.SetSensors([]*ng.Sensor{sensor})
-	cortex.SetNeurons([]*ng.Neuron{hiddenNeuron1, hiddenNeuron2, hiddenNeuron3, outputNeuron})
-	cortex.SetActuators([]*ng.Actuator{actuator})
-
-	return cortex
-
-}
-
-func testCortexRecurrent() *ng.Cortex {
-
-	shouldReInit := false
-
-	sensor := &ng.Sensor{
-		NodeId:       ng.NewSensorId("sensor", 0.0),
-		VectorLength: 2,
-	}
-	sensor.Init(shouldReInit)
-
-	hiddenNeuron1 := &ng.Neuron{
-		ActivationFunction: ng.EncodableSigmoid(),
-		NodeId:             ng.NewNeuronId("hidden-neuron1", 0.15),
-		Bias:               -30,
-	}
-	hiddenNeuron1.Init(shouldReInit)
-
-	hiddenNeuron2 := &ng.Neuron{
-		ActivationFunction: ng.EncodableSigmoid(),
-		NodeId:             ng.NewNeuronId("hidden-neuron2", 0.25),
-		Bias:               10,
-	}
-	hiddenNeuron2.Init(shouldReInit)
-
-	hiddenNeuron3 := &ng.Neuron{
-		ActivationFunction: ng.EncodableSigmoid(),
-		NodeId:             ng.NewNeuronId("hidden-neuron3", 0.35),
-		Bias:               10,
-	}
-	hiddenNeuron3.Init(shouldReInit)
-
-	outputNeuron := &ng.Neuron{
-		ActivationFunction: ng.EncodableSigmoid(),
-		NodeId:             ng.NewNeuronId("output-neuron", 0.45),
-		Bias:               -10,
-	}
-	outputNeuron.Init(shouldReInit)
-
-	actuator := &ng.Actuator{
-		NodeId:       ng.NewActuatorId("actuator", 0.5),
-		VectorLength: 1,
-	}
-	actuator.Init(shouldReInit)
-
-	sensor.ConnectOutbound(hiddenNeuron1)
-	hiddenNeuron1.ConnectInboundWeighted(sensor, []float64{20, 20})
-
-	hiddenNeuron1.ConnectOutbound(hiddenNeuron2)
-	hiddenNeuron2.ConnectInboundWeighted(hiddenNeuron1, []float64{1})
-
-	// jumps over 2nd hidden layer, direct from 1st -> 3rd
-	hiddenNeuron1.ConnectOutbound(hiddenNeuron3)
-	hiddenNeuron3.ConnectInboundWeighted(hiddenNeuron1, []float64{1})
-
-	hiddenNeuron2.ConnectOutbound(hiddenNeuron3)
-	hiddenNeuron3.ConnectInboundWeighted(hiddenNeuron2, []float64{1})
-
-	// recurrent connection
-	hiddenNeuron3.ConnectOutbound(hiddenNeuron1)
-	hiddenNeuron1.ConnectInboundWeighted(hiddenNeuron3, []float64{1})
-
-	hiddenNeuron3.ConnectOutbound(outputNeuron)
-	outputNeuron.ConnectInboundWeighted(hiddenNeuron3, []float64{1})
-
-	outputNeuron.ConnectOutbound(actuator)
-	actuator.ConnectInbound(outputNeuron)
-
-	nodeId := ng.NewCortexId("test-cortex")
-
-	cortex := &ng.Cortex{
-		NodeId: nodeId,
-	}
-	cortex.SetSensors([]*ng.Sensor{sensor})
-	cortex.SetNeurons([]*ng.Neuron{hiddenNeuron1, hiddenNeuron2, hiddenNeuron3, outputNeuron})
-	cortex.SetActuators([]*ng.Actuator{actuator})
-
-	return cortex
-
-}
-
-func verifyWeightsModified(neuron, neuronCopy *ng.Neuron) bool {
-	foundModifiedWeight := false
-
-	// make sure the weights have been modified for at least
-	// one of the inbound connections
-	originalInboundMap := neuron.InboundUUIDMap()
-	copyInboundMap := neuronCopy.InboundUUIDMap()
-
-	for uuid, connection := range originalInboundMap {
-		connectionCopy := copyInboundMap[uuid]
-		for i, weight := range connection.Weights {
-			weightCopy := connectionCopy.Weights[i]
-			if weight != weightCopy {
-				foundModifiedWeight = true
-				break
-			}
-		}
-	}
-	return foundModifiedWeight
-
-}
-
 func TestOutspliceRecurrent(t *testing.T) {
 
 	ng.SeedRandom()
@@ -192,7 +18,7 @@ func TestOutspliceRecurrent(t *testing.T) {
 
 	for i := 0; i < numIterations; i++ {
 
-		cortex := testCortexRecurrent()
+		cortex := BasicCortexRecurrent()
 		numNeuronsBefore := len(cortex.Neurons)
 		neuronLayerMapBefore := cortex.NeuronLayerMap()
 		ok, mutateResult := OutspliceRecurrent(cortex)
@@ -243,7 +69,7 @@ func TestOutspliceNonRecurrent(t *testing.T) {
 
 	for i := 0; i < numIterations; i++ {
 
-		cortex := testCortex()
+		cortex := BasicCortex()
 		numNeuronsBefore := len(cortex.Neurons)
 		neuronLayerMapBefore := cortex.NeuronLayerMap()
 		ok, mutateResult := OutspliceNonRecurrent(cortex)
@@ -268,7 +94,7 @@ func TestOutspliceNonRecurrent(t *testing.T) {
 		assert.Equals(t, len(neuron.RecurrentOutboundConnections()), 0)
 
 		// should have one more layer (this makes an assumption
-		// about the testCortex architecture)
+		// about the BasicCortex architecture)
 		numLayersBefore := len(neuronLayerMapBefore)
 		numLayersAfter := len(cortex.NeuronLayerMap())
 		assert.Equals(t, numLayersAfter, numLayersBefore+1)
@@ -293,7 +119,7 @@ func TestAddNeuronNonRecurrent(t *testing.T) {
 
 	for i := 0; i < numIterations; i++ {
 
-		cortex := testCortex()
+		cortex := BasicCortex()
 		numNeuronsBefore := len(cortex.Neurons)
 		ok, mutateResult := AddNeuronNonRecurrent(cortex)
 		neuron := mutateResult.(*ng.Neuron)
@@ -339,7 +165,7 @@ func TestAddNeuronRecurrent(t *testing.T) {
 
 	for i := 0; i < numIterations; i++ {
 
-		cortex := testCortex()
+		cortex := BasicCortex()
 		numNeuronsBefore := len(cortex.Neurons)
 		ok, mutateResult := AddNeuronRecurrent(cortex)
 		neuron := mutateResult.(*ng.Neuron)
@@ -492,7 +318,7 @@ func TestNeuronAddOutlinkNonRecurrent(t *testing.T) {
 	madeRecurrentLink := false
 
 	for i := 0; i < 100; i++ {
-		xnorCortex := testCortex()
+		xnorCortex := BasicCortex()
 		neuron := xnorCortex.NeuronUUIDMap()["hidden-neuron1"]
 		ok, mutateResult := NeuronAddOutlinkNonRecurrent(neuron)
 		if !ok {
@@ -520,7 +346,7 @@ func TestNeuronAddOutlinkRecurrent(t *testing.T) {
 	madeRecurrentLink := false
 
 	for i := 0; i < 100; i++ {
-		xnorCortex := testCortex()
+		xnorCortex := BasicCortex()
 
 		neuron := xnorCortex.NeuronUUIDMap()["hidden-neuron1"]
 
@@ -701,7 +527,7 @@ func TestAddBias(t *testing.T) {
 
 func TestMutatorsThatAlwaysMutate(t *testing.T) {
 
-	testCortex := testCortex()
+	testCortex := BasicCortex()
 	cortexMutators := []CortexMutator{
 		RemoveBias,
 		MutateWeights,
@@ -731,5 +557,27 @@ func TestMutatorsThatAlwaysMutate(t *testing.T) {
 		}
 
 	}
+
+}
+
+func verifyWeightsModified(neuron, neuronCopy *ng.Neuron) bool {
+	foundModifiedWeight := false
+
+	// make sure the weights have been modified for at least
+	// one of the inbound connections
+	originalInboundMap := neuron.InboundUUIDMap()
+	copyInboundMap := neuronCopy.InboundUUIDMap()
+
+	for uuid, connection := range originalInboundMap {
+		connectionCopy := copyInboundMap[uuid]
+		for i, weight := range connection.Weights {
+			weightCopy := connectionCopy.Weights[i]
+			if weight != weightCopy {
+				foundModifiedWeight = true
+				break
+			}
+		}
+	}
+	return foundModifiedWeight
 
 }
