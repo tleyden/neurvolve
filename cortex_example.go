@@ -140,6 +140,9 @@ func BasicCortexRecurrent() *ng.Cortex {
 	hiddenNeuron3.ConnectOutbound(outputNeuron)
 	outputNeuron.ConnectInboundWeighted(hiddenNeuron3, []float64{1})
 
+	outputNeuron.ConnectOutbound(outputNeuron)
+	outputNeuron.ConnectInboundWeighted(outputNeuron, []float64{1})
+
 	outputNeuron.ConnectOutbound(actuator)
 	actuator.ConnectInbound(outputNeuron)
 

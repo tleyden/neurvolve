@@ -1,6 +1,7 @@
 package neurvolve
 
 import (
+	"github.com/couchbaselabs/logg"
 	ng "github.com/tleyden/neurgo"
 	"log"
 )
@@ -117,15 +118,26 @@ func AddNeuronRecurrent(cortex *ng.Cortex) (bool, MutateResult) {
 		nodeIdLayerMap := cortex.NodeIdLayerMap()
 		neuronLayerMap := cortex.NeuronLayerMap()
 		randomLayer := neuronLayerMap.ChooseRandomLayer()
-		neuron := cortex.CreateNeuronInLayer(randomLayer)
 		inboundNodeId := findRecurrentInboundNodeId(cortex,
 			nodeIdLayerMap,
 			randomLayer)
+
+		logg.LogTo("NEURVOLVE", "randomLayer: %v", randomLayer)
+
+		logg.LogTo("NEURVOLVE", "inboundNodeId: %v", inboundNodeId)
 
 		if inboundNodeId == nil {
 			log.Printf("Warn: unable to find inbound node id")
 			continue
 		}
+
+		if randomLayer == inboundNodeId.LayerIndex {
+			logg.LogTo("NEURVOLVE", "skipping inbound node since it's in the same layer")
+			continue
+		}
+
+		neuron := cortex.CreateNeuronInLayer(randomLayer)
+		logg.LogTo("NEURVOLVE", "neuron: %v", neuron)
 
 		outboundNodeId := findRecurrentOutboundNodeId(cortex,
 			nodeIdLayerMap,
@@ -139,21 +151,28 @@ func AddNeuronRecurrent(cortex *ng.Cortex) (bool, MutateResult) {
 		neuronAddInlinkFrom(neuron, inboundNodeId)
 		neuronAddOutlinkTo(neuron, outboundNodeId)
 
+		logg.LogTo("NEURVOLVE", "return true, %v", neuron)
 		return true, neuron
 
 	}
+
+	logg.LogTo("NEURVOLVE", "return false, nil")
 	return false, nil
 
 }
 
 func Outsplice(cortex *ng.Cortex, chooseOutbound OutboundChooser) (bool, *ng.Neuron) {
 
-	numAttempts := len(cortex.AllNodeIds())
+	numAttempts := len(cortex.AllNodeIds()) * 5
 
 	for i := 0; i < numAttempts; i++ {
 		neuronA := randomNeuron(cortex)
 		outbound := chooseOutbound(neuronA)
 		if outbound == nil {
+			continue
+		}
+
+		if neuronA.NodeId.UUID == outbound.NodeId.UUID {
 			continue
 		}
 

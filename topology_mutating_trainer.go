@@ -20,6 +20,7 @@ func (tmt *TopologyMutatingTrainer) Train(cortex *ng.Cortex, examples []*ng.Trai
 
 	originalCortex := cortex.Copy()
 	currentCortex := cortex
+	currentCortex.RenderSVGFile("/Users/traun/tmp/current.svg")
 
 	// Apply NN to problem and save fitness
 	fitness := currentCortex.Fitness(examples)
@@ -50,6 +51,9 @@ func (tmt *TopologyMutatingTrainer) Train(cortex *ng.Cortex, examples []*ng.Trai
 		}
 
 		log.Printf("after mutate. cortex: %v", ng.JsonString(currentCortex))
+
+		currentCortex.RenderSVGFile("/Users/traun/tmp/current.svg")
+
 		log.Printf("run stochastic hill climber")
 
 		// memetic step: call stochastic hill climber and see if it can solve it

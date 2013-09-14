@@ -1,13 +1,28 @@
 package neurvolve
 
 import (
+	"fmt"
 	"github.com/couchbaselabs/go.assert"
+	"github.com/couchbaselabs/logg"
 	ng "github.com/tleyden/neurgo"
 	"log"
 	"testing"
 )
 
+func TestVisualize(t *testing.T) {
+
+	cortex := BasicCortex()
+	cortex.RenderSVGFile("/Users/traun/tmp/basic.svg")
+
+	cortexRecurrent := BasicCortexRecurrent()
+	cortexRecurrent.RenderSVGFile("/Users/traun/tmp/basic_recurrent.svg")
+
+}
+
 func TestOutspliceRecurrent(t *testing.T) {
+
+	logg.LogKeys["TEST"] = true
+	logg.LogKeys["NEURVOLVE"] = true
 
 	ng.SeedRandom()
 
@@ -19,6 +34,15 @@ func TestOutspliceRecurrent(t *testing.T) {
 	for i := 0; i < numIterations; i++ {
 
 		cortex := BasicCortexRecurrent()
+
+		// run network make sure it runs
+		examplesBefore := ng.XnorTrainingSamples()
+		fitnessBefore := cortex.Fitness(examplesBefore)
+		assert.True(t, fitnessBefore >= 0)
+
+		// recreate network
+		cortex = BasicCortexRecurrent()
+
 		numNeuronsBefore := len(cortex.Neurons)
 		neuronLayerMapBefore := cortex.NeuronLayerMap()
 		ok, mutateResult := OutspliceRecurrent(cortex)
@@ -122,13 +146,13 @@ func TestAddNeuronNonRecurrent(t *testing.T) {
 		cortex := BasicCortex()
 		numNeuronsBefore := len(cortex.Neurons)
 		ok, mutateResult := AddNeuronNonRecurrent(cortex)
-		neuron := mutateResult.(*ng.Neuron)
 
 		if !ok {
 			numUnableToAdd += 1
 			continue
 		}
 
+		neuron := mutateResult.(*ng.Neuron)
 		assert.True(t, neuron.ActivationFunction != nil)
 		numNeuronsAfter := len(cortex.Neurons)
 		addedNeuron := numNeuronsAfter == numNeuronsBefore+1
@@ -161,7 +185,7 @@ func TestAddNeuronRecurrent(t *testing.T) {
 	ng.SeedRandom()
 
 	numAdded := 0
-	numIterations := 10
+	numIterations := 100
 
 	for i := 0; i < numIterations; i++ {
 
@@ -179,12 +203,29 @@ func TestAddNeuronRecurrent(t *testing.T) {
 		assert.True(t, neuron != nil)
 		assert.True(t, neuron.ActivationFunction != nil)
 		numNeuronsAfter := len(cortex.Neurons)
-		assert.Equals(t, numNeuronsAfter, numNeuronsBefore+1)
+		addedNeuron := numNeuronsAfter == numNeuronsBefore+1
+		if !addedNeuron {
+
+			filenameSvg := fmt.Sprintf("/Users/traun/tmp/cortex-%v.svg", i)
+			cortex.RenderSVGFile(filenameSvg)
+			filename := fmt.Sprintf("/Users/traun/tmp/cortex-%v.json", i)
+			cortex.MarshalJSONToFile(filename)
+
+			logg.LogPanic("AddNeuronRecurrent %v did not add exactly one neuron.  before: %v after: %v", i, numNeuronsBefore, numNeuronsAfter)
+
+		}
 
 		// run network make sure it runs
+		logg.LogTo("TEST", "TestAddNeuronRecurrent run modified network: %v", i)
+		filenameSvg := fmt.Sprintf("/Users/traun/tmp/cortex-%v.svg", i)
+		cortex.RenderSVGFile(filenameSvg)
+		filename := fmt.Sprintf("/Users/traun/tmp/cortex-%v.json", i)
+		cortex.MarshalJSONToFile(filename)
+
 		examples := ng.XnorTrainingSamples()
 		fitness := cortex.Fitness(examples)
 		assert.True(t, fitness >= 0)
+		logg.LogTo("TEST", "TestAddNeuronRecurrent finished run modified network: %v", i)
 
 	}
 
