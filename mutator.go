@@ -11,7 +11,7 @@ type NeuronMutator func(*ng.Neuron) (bool, MutateResult)
 type MutateResult interface{}
 type CortexMutator func(*ng.Cortex) (bool, MutateResult)
 
-func CortexMutatorsCommon() []CortexMutator {
+func CortexMutatorsNonTopological() []CortexMutator {
 	mutators := []CortexMutator{
 		AddBias,
 		RemoveBias,
@@ -22,26 +22,34 @@ func CortexMutatorsCommon() []CortexMutator {
 	return mutators
 }
 
-func CortexMutatorsRecurrent() []CortexMutator {
+func CortexMutatorsRecurrent(includeNonTopological bool) []CortexMutator {
 	recurrentMutators := []CortexMutator{
 		AddNeuronRecurrent,
 		AddInlinkRecurrent,
 		AddOutlinkRecurrent,
 		OutspliceRecurrent,
 	}
-	commonMutators := CortexMutatorsCommon()
-	return append(recurrentMutators, commonMutators...)
+	if includeNonTopological {
+		commonMutators := CortexMutatorsNonTopological()
+		return append(recurrentMutators, commonMutators...)
+	} else {
+		return recurrentMutators
+	}
 }
 
-func CortexMutatorsNonRecurrent() []CortexMutator {
+func CortexMutatorsNonRecurrent(includeNonTopological bool) []CortexMutator {
 	nonRecurrentMutators := []CortexMutator{
 		AddNeuronNonRecurrent,
 		AddInlinkNonRecurrent,
 		AddOutlinkNonRecurrent,
 		OutspliceNonRecurrent,
 	}
-	commonMutators := CortexMutatorsCommon()
-	return append(nonRecurrentMutators, commonMutators...)
+	if includeNonTopological {
+		commonMutators := CortexMutatorsNonTopological()
+		return append(nonRecurrentMutators, commonMutators...)
+	} else {
+		return nonRecurrentMutators
+	}
 }
 
 func inboundConnectionCandidates(neuron *ng.Neuron) []*ng.NodeId {
@@ -80,7 +88,7 @@ func inboundConnectionCandidates(neuron *ng.Neuron) []*ng.NodeId {
 }
 
 func AddNeuronNonRecurrent(cortex *ng.Cortex) (bool, MutateResult) {
-
+	logg.LogTo("NEURVOLVE", "Mutate: AddNeuronNonRecurrent")
 	numAttempts := len(cortex.AllNodeIds()) * 5
 
 	for i := 0; i < numAttempts; i++ {
@@ -111,6 +119,7 @@ func AddNeuronNonRecurrent(cortex *ng.Cortex) (bool, MutateResult) {
 
 func AddNeuronRecurrent(cortex *ng.Cortex) (bool, MutateResult) {
 
+	logg.LogTo("NEURVOLVE", "Mutate: AddNeuronRecurrent")
 	numAttempts := len(cortex.AllNodeIds()) * 5
 
 	for i := 0; i < numAttempts; i++ {
@@ -211,11 +220,13 @@ func Outsplice(cortex *ng.Cortex, chooseOutbound OutboundChooser) (bool, *ng.Neu
 }
 
 func OutspliceRecurrent(cortex *ng.Cortex) (bool, MutateResult) {
+	logg.LogTo("NEURVOLVE", "Mutate: OutspliceRecurrent")
 	chooseOutboundFunction := randomOutbound
 	return Outsplice(cortex, chooseOutboundFunction)
 }
 
 func OutspliceNonRecurrent(cortex *ng.Cortex) (bool, MutateResult) {
+	logg.LogTo("NEURVOLVE", "Mutate: OutspliceNonRecurrent")
 	chooseOutboundFunction := randomNonRecurrentOutbound
 	return Outsplice(cortex, chooseOutboundFunction)
 }
@@ -315,6 +326,8 @@ func findDownstreamNodeId(cortex *ng.Cortex, layerMap ng.LayerToNodeIdMap, fromL
 }
 
 func NeuronAddInlinkNonRecurrent(neuron *ng.Neuron) (bool, MutateResult) {
+
+	logg.LogTo("NEURVOLVE", "Mutate: NeuronAddInlinkNonRecurrent")
 	availableNodeIds := inboundConnectionCandidates(neuron)
 
 	// remove any node id's which have a layer index >= neuron.LayerIndex
@@ -331,6 +344,7 @@ func NeuronAddInlinkNonRecurrent(neuron *ng.Neuron) (bool, MutateResult) {
 
 func NeuronAddInlinkRecurrent(neuron *ng.Neuron) (bool, MutateResult) {
 
+	logg.LogTo("NEURVOLVE", "Mutate: NeuronAddInlinkRecurrent")
 	// choose a random element B, where element B is another
 	// neuron or a sensor which is not already connected
 	// to this neuron.
@@ -468,6 +482,7 @@ func neuronAddOutlinkTo(neuron *ng.Neuron, targetNodeId *ng.NodeId) *ng.Outbound
 
 func NeuronAddOutlinkRecurrent(neuron *ng.Neuron) (bool, MutateResult) {
 
+	logg.LogTo("NEURVOLVE", "Mutate: NeuronAddOutlinkRecurrent")
 	// choose a random element B, where element B is another
 	// neuron or a sensor which is not already connected
 	// to this neuron.
@@ -477,6 +492,7 @@ func NeuronAddOutlinkRecurrent(neuron *ng.Neuron) (bool, MutateResult) {
 
 func NeuronAddOutlinkNonRecurrent(neuron *ng.Neuron) (bool, MutateResult) {
 
+	logg.LogTo("NEURVOLVE", "Mutate: NeuronAddOutlinkNonRecurrent")
 	availableNodeIds := outboundConnectionCandidates(neuron)
 
 	// remove any node id's which have a layer index >= neuron.LayerIndex
@@ -572,37 +588,46 @@ func ReattemptingNeuronMutator(c *ng.Cortex, mutator NeuronMutator) (bool, Mutat
 }
 
 func AddBias(cortex *ng.Cortex) (bool, MutateResult) {
+	logg.LogTo("NEURVOLVE", "Mutate: AddBias")
 	return RandomNeuronMutator(cortex, NeuronAddBias)
 }
 
 func RemoveBias(cortex *ng.Cortex) (bool, MutateResult) {
+	logg.LogTo("NEURVOLVE", "Mutate: RemoveBias")
 	return RandomNeuronMutator(cortex, NeuronRemoveBias)
 }
 
 func MutateWeights(cortex *ng.Cortex) (bool, MutateResult) {
+	logg.LogTo("NEURVOLVE", "Mutate: MutateWeights")
 	return RandomNeuronMutator(cortex, NeuronMutateWeights)
 }
 
 func ResetWeights(cortex *ng.Cortex) (bool, MutateResult) {
+	logg.LogTo("NEURVOLVE", "Mutate: ResetWeights")
 	return RandomNeuronMutator(cortex, NeuronResetWeights)
 }
 
 func MutateActivation(cortex *ng.Cortex) (bool, MutateResult) {
+	logg.LogTo("NEURVOLVE", "Mutate: MutateActivation")
 	return RandomNeuronMutator(cortex, NeuronMutateActivation)
 }
 
 func AddInlinkRecurrent(cortex *ng.Cortex) (bool, MutateResult) {
+	logg.LogTo("NEURVOLVE", "Mutate: AddInlinkRecurrent")
 	return ReattemptingNeuronMutator(cortex, NeuronAddInlinkRecurrent)
 }
 
 func AddInlinkNonRecurrent(cortex *ng.Cortex) (bool, MutateResult) {
+	logg.LogTo("NEURVOLVE", "Mutate: AddInlinkNonRecurrent")
 	return ReattemptingNeuronMutator(cortex, NeuronAddInlinkNonRecurrent)
 }
 
 func AddOutlinkRecurrent(cortex *ng.Cortex) (bool, MutateResult) {
+	logg.LogTo("NEURVOLVE", "Mutate: AddOutlinkRecurrent")
 	return ReattemptingNeuronMutator(cortex, NeuronAddOutlinkRecurrent)
 }
 
 func AddOutlinkNonRecurrent(cortex *ng.Cortex) (bool, MutateResult) {
+	logg.LogTo("NEURVOLVE", "Mutate: AddOutlinkNonRecurrent")
 	return ReattemptingNeuronMutator(cortex, NeuronAddOutlinkNonRecurrent)
 }

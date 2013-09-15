@@ -17,7 +17,8 @@ func (tmt *TopologyMutatingTrainer) Train(cortex *ng.Cortex, examples []*ng.Trai
 
 	ng.SeedRandom()
 
-	mutators := CortexMutatorsNonRecurrent()
+	includeNonTopological := false
+	mutators := CortexMutatorsNonRecurrent(includeNonTopological)
 
 	originalCortex := cortex.Copy()
 	currentCortex := cortex
@@ -66,7 +67,7 @@ func (tmt *TopologyMutatingTrainer) Train(cortex *ng.Cortex, examples []*ng.Trai
 		// memetic step: call stochastic hill climber and see if it can solve it
 		shc := &StochasticHillClimber{
 			FitnessThreshold:           ng.FITNESS_THRESHOLD,
-			MaxIterationsBeforeRestart: 40000,
+			MaxIterationsBeforeRestart: 10000,
 			MaxAttempts:                10,
 		}
 		fittestCortex, succeeded = shc.Train(currentCortex, examples)
