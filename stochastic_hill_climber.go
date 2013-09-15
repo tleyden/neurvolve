@@ -174,8 +174,7 @@ func possiblyPerturbConnection(cxn *ng.InboundConnection, probability float64) b
 	for j, weight := range cxn.Weights {
 		if rand.Float64() < probability {
 			perturbedWeight := perturbParameter(weight)
-			saturated := ng.Saturate(perturbedWeight, -1*math.Pi, math.Pi)
-			cxn.Weights[j] = saturated
+			cxn.Weights[j] = perturbedWeight
 			didPerturb = true
 		}
 	}
@@ -188,8 +187,7 @@ func (shc *StochasticHillClimber) possiblyPerturbBias(neuron *ng.Neuron, probabi
 	if rand.Float64() < probability {
 		bias := neuron.Bias
 		perturbedBias := perturbParameter(bias)
-		saturated := ng.Saturate(perturbedBias, -1*math.Pi, math.Pi)
-		neuron.Bias = saturated
+		neuron.Bias = perturbedBias
 		didPerturb = true
 	}
 	return didPerturb
