@@ -1,7 +1,6 @@
 package neurvolve
 
 import (
-	"fmt"
 	"github.com/couchbaselabs/go.assert"
 	"github.com/couchbaselabs/logg"
 	ng "github.com/tleyden/neurgo"
@@ -206,26 +205,14 @@ func TestAddNeuronRecurrent(t *testing.T) {
 		addedNeuron := numNeuronsAfter == numNeuronsBefore+1
 		if !addedNeuron {
 
-			filenameSvg := fmt.Sprintf("/Users/traun/tmp/cortex-%v.svg", i)
-			cortex.RenderSVGFile(filenameSvg)
-			filename := fmt.Sprintf("/Users/traun/tmp/cortex-%v.json", i)
-			cortex.MarshalJSONToFile(filename)
-
 			logg.LogPanic("AddNeuronRecurrent %v did not add exactly one neuron.  before: %v after: %v", i, numNeuronsBefore, numNeuronsAfter)
 
 		}
 
 		// run network make sure it runs
-		logg.LogTo("TEST", "TestAddNeuronRecurrent run modified network: %v", i)
-		filenameSvg := fmt.Sprintf("/Users/traun/tmp/cortex-%v.svg", i)
-		cortex.RenderSVGFile(filenameSvg)
-		filename := fmt.Sprintf("/Users/traun/tmp/cortex-%v.json", i)
-		cortex.MarshalJSONToFile(filename)
-
 		examples := ng.XnorTrainingSamples()
 		fitness := cortex.Fitness(examples)
 		assert.True(t, fitness >= 0)
-		logg.LogTo("TEST", "TestAddNeuronRecurrent finished run modified network: %v", i)
 
 	}
 
