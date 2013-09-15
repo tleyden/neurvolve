@@ -70,9 +70,9 @@ func (tmt *TopologyMutatingTrainer) Train(cortex *ng.Cortex, examples []*ng.Trai
 		}
 
 		filenameJson := fmt.Sprintf("cortex-%v.json", i)
-		cortex.MarshalJSONToFile(filenameJson)
+		currentCortex.MarshalJSONToFile(filenameJson)
 		filenameSvg := fmt.Sprintf("cortex-%v.svg", i)
-		cortex.RenderSVGFile(filenameSvg)
+		currentCortex.RenderSVGFile(filenameSvg)
 		log.Printf("after mutate. cortex written to: %v and %v", filenameSvg, filenameJson)
 
 		log.Printf("run stochastic hill climber")
