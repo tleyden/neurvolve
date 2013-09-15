@@ -67,7 +67,7 @@ func (tmt *TopologyMutatingTrainer) Train(cortex *ng.Cortex, examples []*ng.Trai
 		// memetic step: call stochastic hill climber and see if it can solve it
 		shc := &StochasticHillClimber{
 			FitnessThreshold:           ng.FITNESS_THRESHOLD,
-			MaxIterationsBeforeRestart: 10000,
+			MaxIterationsBeforeRestart: 20000,
 			MaxAttempts:                10,
 		}
 		fittestCortex, succeeded = shc.Train(currentCortex, examples)
