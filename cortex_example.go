@@ -6,47 +6,45 @@ import (
 
 func BasicCortex() *ng.Cortex {
 
-	shouldReInit := false
-
 	sensor := &ng.Sensor{
 		NodeId:       ng.NewSensorId("sensor", 0.0),
 		VectorLength: 2,
 	}
-	sensor.Init(shouldReInit)
+	sensor.Init()
 
 	hiddenNeuron1 := &ng.Neuron{
 		ActivationFunction: ng.EncodableSigmoid(),
 		NodeId:             ng.NewNeuronId("hidden-neuron1", 0.15),
 		Bias:               -30,
 	}
-	hiddenNeuron1.Init(shouldReInit)
+	hiddenNeuron1.Init()
 
 	hiddenNeuron2 := &ng.Neuron{
 		ActivationFunction: ng.EncodableSigmoid(),
 		NodeId:             ng.NewNeuronId("hidden-neuron2", 0.25),
 		Bias:               10,
 	}
-	hiddenNeuron2.Init(shouldReInit)
+	hiddenNeuron2.Init()
 
 	hiddenNeuron3 := &ng.Neuron{
 		ActivationFunction: ng.EncodableSigmoid(),
 		NodeId:             ng.NewNeuronId("hidden-neuron3", 0.35),
 		Bias:               10,
 	}
-	hiddenNeuron3.Init(shouldReInit)
+	hiddenNeuron3.Init()
 
 	outputNeuron := &ng.Neuron{
 		ActivationFunction: ng.EncodableSigmoid(),
 		NodeId:             ng.NewNeuronId("output-neuron", 0.45),
 		Bias:               -10,
 	}
-	outputNeuron.Init(shouldReInit)
+	outputNeuron.Init()
 
 	actuator := &ng.Actuator{
 		NodeId:       ng.NewActuatorId("actuator", 0.5),
 		VectorLength: 1,
 	}
-	actuator.Init(shouldReInit)
+	actuator.Init()
 
 	sensor.ConnectOutbound(hiddenNeuron1)
 	hiddenNeuron1.ConnectInboundWeighted(sensor, []float64{20, 20})
@@ -78,47 +76,45 @@ func BasicCortex() *ng.Cortex {
 
 func BasicCortexRecurrent() *ng.Cortex {
 
-	shouldReInit := false
-
 	sensor := &ng.Sensor{
 		NodeId:       ng.NewSensorId("sensor", 0.0),
 		VectorLength: 2,
 	}
-	sensor.Init(shouldReInit)
+	sensor.Init()
 
 	hiddenNeuron1 := &ng.Neuron{
 		ActivationFunction: ng.EncodableSigmoid(),
 		NodeId:             ng.NewNeuronId("hidden-neuron1", 0.15),
 		Bias:               -30,
 	}
-	hiddenNeuron1.Init(shouldReInit)
+	hiddenNeuron1.Init()
 
 	hiddenNeuron2 := &ng.Neuron{
 		ActivationFunction: ng.EncodableSigmoid(),
 		NodeId:             ng.NewNeuronId("hidden-neuron2", 0.25),
 		Bias:               10,
 	}
-	hiddenNeuron2.Init(shouldReInit)
+	hiddenNeuron2.Init()
 
 	hiddenNeuron3 := &ng.Neuron{
 		ActivationFunction: ng.EncodableSigmoid(),
 		NodeId:             ng.NewNeuronId("hidden-neuron3", 0.35),
 		Bias:               10,
 	}
-	hiddenNeuron3.Init(shouldReInit)
+	hiddenNeuron3.Init()
 
 	outputNeuron := &ng.Neuron{
 		ActivationFunction: ng.EncodableSigmoid(),
 		NodeId:             ng.NewNeuronId("output-neuron", 0.45),
 		Bias:               -10,
 	}
-	outputNeuron.Init(shouldReInit)
+	outputNeuron.Init()
 
 	actuator := &ng.Actuator{
 		NodeId:       ng.NewActuatorId("actuator", 0.5),
 		VectorLength: 1,
 	}
-	actuator.Init(shouldReInit)
+	actuator.Init()
 
 	sensor.ConnectOutbound(hiddenNeuron1)
 	hiddenNeuron1.ConnectInboundWeighted(sensor, []float64{20, 20})

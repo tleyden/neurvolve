@@ -40,8 +40,7 @@ func (tmt *TopologyMutatingTrainer) Train(cortex *ng.Cortex, examples []*ng.Trai
 		// before we mutate the cortex, we need to init it,
 		// otherwise things like Outsplice will fail because
 		// there are no DataChan's.
-		shouldReInit := false
-		currentCortex.Init(shouldReInit)
+		currentCortex.Init()
 
 		// mutate the network
 		randInt := RandomIntInRange(0, len(mutators))

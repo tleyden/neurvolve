@@ -44,7 +44,6 @@ func RunStochasticHillClimber() {
 
 func XnorCortexUntrained() *ng.Cortex {
 
-	shouldReInit := false
 	sensorNodeId := ng.NewSensorId("sensor", 0.0)
 	hiddenNeuron1NodeId := ng.NewNeuronId("hidden-neuron1", 0.25)
 	hiddenNeuron2NodeId := ng.NewNeuronId("hidden-neuron2", 0.25)
@@ -57,33 +56,33 @@ func XnorCortexUntrained() *ng.Cortex {
 		NodeId:             hiddenNeuron1NodeId,
 		Bias:               nv.RandomBias(),
 	}
-	hiddenNeuron1.Init(shouldReInit)
+	hiddenNeuron1.Init()
 
 	hiddenNeuron2 := &ng.Neuron{
 		ActivationFunction: ng.EncodableSigmoid(),
 		NodeId:             hiddenNeuron2NodeId,
 		Bias:               nv.RandomBias(),
 	}
-	hiddenNeuron2.Init(shouldReInit)
+	hiddenNeuron2.Init()
 
 	outputNeuron := &ng.Neuron{
 		ActivationFunction: ng.EncodableSigmoid(),
 		NodeId:             outputNeuronNodeIde,
 		Bias:               nv.RandomBias(),
 	}
-	outputNeuron.Init(shouldReInit)
+	outputNeuron.Init()
 
 	sensor := &ng.Sensor{
 		NodeId:       sensorNodeId,
 		VectorLength: 2,
 	}
-	sensor.Init(shouldReInit)
+	sensor.Init()
 
 	actuator := &ng.Actuator{
 		NodeId:       actuatorNodeId,
 		VectorLength: 1,
 	}
-	actuator.Init(shouldReInit)
+	actuator.Init()
 
 	sensor.ConnectOutbound(hiddenNeuron1)
 	hiddenNeuron1.ConnectInboundWeighted(sensor, []float64{20, 20})
