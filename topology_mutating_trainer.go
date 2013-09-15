@@ -25,9 +25,6 @@ func (tmt *TopologyMutatingTrainer) Train(cortex *ng.Cortex, examples []*ng.Trai
 	currentCortex := cortex
 	currentCortex.RenderSVGFile("/Users/traun/tmp/current.svg")
 
-	currentCortex.Init(false)
-	currentCortex.InitOutboundConnections()
-
 	// Apply NN to problem and save fitness
 	fitness := currentCortex.Fitness(examples)
 
