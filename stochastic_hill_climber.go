@@ -20,6 +20,9 @@ func (shc *StochasticHillClimber) Train(cortex *ng.Cortex, examples []*ng.Traini
 
 	fittestNeuralNet = cortex
 
+	fittestNeuralNet.Init(false)
+	fittestNeuralNet.InitOutboundConnections()
+
 	// Apply NN to problem and save fitness
 	fitness := fittestNeuralNet.Fitness(examples)
 
