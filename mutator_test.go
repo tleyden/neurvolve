@@ -11,10 +11,12 @@ import (
 func TestVisualize(t *testing.T) {
 
 	cortex := BasicCortex()
-	cortex.RenderSVGFile("/Users/traun/tmp/basic.svg")
+	cortex.RenderSVGFile("basic.svg")
 
 	cortexRecurrent := BasicCortexRecurrent()
-	cortexRecurrent.RenderSVGFile("/Users/traun/tmp/basic_recurrent.svg")
+	cortexRecurrent.RenderSVGFile("basic_recurrent.svg")
+
+	// TODO: make sure the files aren't empty
 
 }
 
