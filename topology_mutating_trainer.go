@@ -1,6 +1,7 @@
 package neurvolve
 
 import (
+	"fmt"
 	ng "github.com/tleyden/neurgo"
 	"log"
 )
@@ -33,7 +34,20 @@ func (tmt *TopologyMutatingTrainer) Train(cortex *ng.Cortex, examples []*ng.Trai
 	for i := 0; ; i++ {
 
 		log.Printf("before mutate.  i/max: %d/%d", i, tmt.MaxAttempts)
-		log.Printf("cortex: %v", ng.JsonString(currentCortex))
+
+		for _, neuron := range currentCortex.Neurons {
+			if neuron.Cortex == nil {
+
+				filenameJson := fmt.Sprintf("cortex-%v.json", i)
+				cortex.MarshalJSONToFile(filenameJson)
+				filenameSvg := fmt.Sprintf("cortex-%v.svg", i)
+				cortex.RenderSVGFile(filenameSvg)
+
+				log.Printf("cortex written to: %v and %v", filenameSvg, filenameJson)
+
+				log.Panicf("iteration: %v.  neuron has no Cortex: %v", i, neuron)
+			}
+		}
 
 		// before we mutate the cortex, we need to init it,
 		// otherwise things like Outsplice will fail because
@@ -50,9 +64,16 @@ func (tmt *TopologyMutatingTrainer) Train(cortex *ng.Cortex, examples []*ng.Trai
 			continue
 		}
 
-		log.Printf("after mutate. cortex: %v", ng.JsonString(currentCortex))
+		isValid := currentCortex.Validate()
+		if !isValid {
+			log.Panicf("Cortex did not validate")
+		}
 
-		currentCortex.RenderSVGFile("/Users/traun/tmp/current.svg")
+		filenameJson := fmt.Sprintf("cortex-%v.json", i)
+		cortex.MarshalJSONToFile(filenameJson)
+		filenameSvg := fmt.Sprintf("cortex-%v.svg", i)
+		cortex.RenderSVGFile(filenameSvg)
+		log.Printf("after mutate. cortex written to: %v and %v", filenameSvg, filenameJson)
 
 		log.Printf("run stochastic hill climber")
 
@@ -77,7 +98,17 @@ func (tmt *TopologyMutatingTrainer) Train(cortex *ng.Cortex, examples []*ng.Trai
 
 		if ng.IntModuloProper(i, tmt.MaxIterationsBeforeRestart) {
 			log.Printf("** restart.  i/max: %d/%d", i, tmt.MaxAttempts)
+
 			currentCortex = originalCortex.Copy()
+			isValid := currentCortex.Validate()
+			if !isValid {
+				currentCortex.Repair()
+				isValid = currentCortex.Validate()
+				if !isValid {
+					log.Panicf("Cortex could not be repaired")
+				}
+			}
+
 		}
 
 	}

@@ -1,12 +1,15 @@
 package main
 
 import (
+	"github.com/couchbaselabs/logg"
 	ng "github.com/tleyden/neurgo"
 	nv "github.com/tleyden/neurvolve"
 	"log"
 )
 
 func RunTopologyMutatingTrainer() {
+
+	logg.LogKeys["DEBUG"] = true
 
 	ng.SeedRandom()
 
