@@ -81,7 +81,7 @@ func inboundConnectionCandidates(neuron *ng.Neuron) []*ng.NodeId {
 
 func AddNeuronNonRecurrent(cortex *ng.Cortex) (bool, MutateResult) {
 
-	numAttempts := len(cortex.AllNodeIds())
+	numAttempts := len(cortex.AllNodeIds()) * 5
 
 	for i := 0; i < numAttempts; i++ {
 
@@ -111,7 +111,7 @@ func AddNeuronNonRecurrent(cortex *ng.Cortex) (bool, MutateResult) {
 
 func AddNeuronRecurrent(cortex *ng.Cortex) (bool, MutateResult) {
 
-	numAttempts := len(cortex.AllNodeIds())
+	numAttempts := len(cortex.AllNodeIds()) * 5
 
 	for i := 0; i < numAttempts; i++ {
 
@@ -265,7 +265,7 @@ func findRecurrentInboundNodeId(cortex *ng.Cortex, layerMap ng.LayerToNodeIdMap,
 // be a sensor node
 func findRecurrentOutboundNodeId(cortex *ng.Cortex, layerMap ng.LayerToNodeIdMap, fromLayer float64) *ng.NodeId {
 
-	numAttempts := len(cortex.AllNodeIds())
+	numAttempts := len(cortex.AllNodeIds()) * 5
 
 	keys := layerMap.Keys()
 
@@ -290,7 +290,7 @@ func findRecurrentOutboundNodeId(cortex *ng.Cortex, layerMap ng.LayerToNodeIdMap
 
 func findDownstreamNodeId(cortex *ng.Cortex, layerMap ng.LayerToNodeIdMap, fromLayer float64) *ng.NodeId {
 
-	numAttempts := len(cortex.AllNodeIds())
+	numAttempts := len(cortex.AllNodeIds()) * 5
 
 	for i := 0; i < numAttempts; i++ {
 
