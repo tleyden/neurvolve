@@ -1,6 +1,7 @@
 package neurvolve
 
 import (
+	"github.com/couchbaselabs/logg"
 	ng "github.com/tleyden/neurgo"
 	"log"
 	"math"
@@ -14,6 +15,8 @@ type StochasticHillClimber struct {
 }
 
 func (shc *StochasticHillClimber) Train(cortex *ng.Cortex, examples []*ng.TrainingSample) (fittestNeuralNet *ng.Cortex, succeeded bool) {
+
+	numAttempts := 0
 
 	fittestNeuralNet = cortex
 
@@ -38,23 +41,29 @@ func (shc *StochasticHillClimber) Train(cortex *ng.Cortex, examples []*ng.Traini
 
 		// If fitness of perturbed NN is higher, discard original NN and keep new
 		// If fitness of original is higher, discard perturbed and keep old.
+
 		if candidateFitness > fitness {
+			logg.LogTo("DEBUG", "i: %v candidateFitness: %v > fitness: %v", i, candidateFitness, fitness)
+			i = 0
 			fittestNeuralNet = candidateNeuralNet
 			fitness = candidateFitness
 		}
 
 		if ng.IntModuloProper(i, shc.MaxIterationsBeforeRestart) {
-			log.Printf("** restart hill climber.  fitness: %f i/max: %d/%d", candidateFitness, i, shc.MaxAttempts)
+			log.Printf("** restart hill climber.  fitness: %f i/max: %d/%d", candidateFitness, numAttempts, shc.MaxAttempts)
+			numAttempts += 1
+			i = 0
 			shc.resetParametersToRandom(fittestNeuralNet)
 			// fittestNeuralNet = originalNet.Copy()
 		}
 
 		if candidateFitness > shc.FitnessThreshold {
+			logg.LogTo("DEBUG", "candidateFitness: %v > Threshold.  Success at i=%v", candidateFitness, i)
 			succeeded = true
 			break
 		}
 
-		if i >= shc.MaxAttempts {
+		if numAttempts >= shc.MaxAttempts {
 			succeeded = false
 			break
 		}

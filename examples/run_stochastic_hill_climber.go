@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/couchbaselabs/logg"
 	ng "github.com/tleyden/neurgo"
 	nv "github.com/tleyden/neurvolve"
 )
@@ -24,7 +25,7 @@ func RunStochasticHillClimber() {
 	shc := &nv.StochasticHillClimber{
 		FitnessThreshold:           ng.FITNESS_THRESHOLD,
 		MaxIterationsBeforeRestart: 100000,
-		MaxAttempts:                4000000,
+		MaxAttempts:                10,
 	}
 	cortexTrained, succeeded := shc.Train(cortex, examples)
 	if !succeeded {
@@ -36,6 +37,8 @@ func RunStochasticHillClimber() {
 	if !verified {
 		panic("could not verify neural net")
 	}
+
+	logg.Log("done")
 
 }
 

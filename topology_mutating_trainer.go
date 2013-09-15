@@ -67,7 +67,7 @@ func (tmt *TopologyMutatingTrainer) Train(cortex *ng.Cortex, examples []*ng.Trai
 		shc := &StochasticHillClimber{
 			FitnessThreshold:           ng.FITNESS_THRESHOLD,
 			MaxIterationsBeforeRestart: 40000,
-			MaxAttempts:                200000,
+			MaxAttempts:                10,
 		}
 		fittestCortex, succeeded = shc.Train(currentCortex, examples)
 		log.Printf("stochastic hill climber finished.  succeeded: %v", succeeded)

@@ -48,7 +48,7 @@ func ExpensiveTestUnmarshalCortexFitness(t *testing.T) {
 	shc := &StochasticHillClimber{
 		FitnessThreshold:           ng.FITNESS_THRESHOLD,
 		MaxIterationsBeforeRestart: 100000,
-		MaxAttempts:                4000000,
+		MaxAttempts:                10,
 	}
 	examples := ng.XnorTrainingSamples()
 	cortexTrained, succeeded := shc.Train(cortex, examples)
