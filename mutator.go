@@ -122,10 +122,6 @@ func AddNeuronRecurrent(cortex *ng.Cortex) (bool, MutateResult) {
 			nodeIdLayerMap,
 			randomLayer)
 
-		logg.LogTo("NEURVOLVE", "randomLayer: %v", randomLayer)
-
-		logg.LogTo("NEURVOLVE", "inboundNodeId: %v", inboundNodeId)
-
 		if inboundNodeId == nil {
 			log.Printf("Warn: unable to find inbound node id")
 			continue
@@ -137,7 +133,6 @@ func AddNeuronRecurrent(cortex *ng.Cortex) (bool, MutateResult) {
 		}
 
 		neuron := cortex.CreateNeuronInLayer(randomLayer)
-		logg.LogTo("NEURVOLVE", "neuron: %v", neuron)
 
 		outboundNodeId := findRecurrentOutboundNodeId(cortex,
 			nodeIdLayerMap,
