@@ -10,6 +10,7 @@ import (
 func RunTopologyMutatingTrainer() {
 
 	logg.LogKeys["DEBUG"] = true
+	logg.LogKeys["NEURVOLVE"] = true
 
 	ng.SeedRandom()
 
