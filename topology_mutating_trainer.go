@@ -35,20 +35,6 @@ func (tmt *TopologyMutatingTrainer) Train(cortex *ng.Cortex, examples []*ng.Trai
 
 		log.Printf("before mutate.  i/max: %d/%d", i, tmt.MaxAttempts)
 
-		for _, neuron := range currentCortex.Neurons {
-			if neuron.Cortex == nil {
-
-				filenameJson := fmt.Sprintf("cortex-%v.json", i)
-				cortex.MarshalJSONToFile(filenameJson)
-				filenameSvg := fmt.Sprintf("cortex-%v.svg", i)
-				cortex.RenderSVGFile(filenameSvg)
-
-				log.Printf("cortex written to: %v and %v", filenameSvg, filenameJson)
-
-				log.Panicf("iteration: %v.  neuron has no Cortex: %v", i, neuron)
-			}
-		}
-
 		// before we mutate the cortex, we need to init it,
 		// otherwise things like Outsplice will fail because
 		// there are no DataChan's.
