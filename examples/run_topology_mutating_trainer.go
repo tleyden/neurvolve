@@ -7,10 +7,9 @@ import (
 	"log"
 )
 
-func RunTopologyMutatingTrainer() {
+func RunTopologyMutatingTrainer() bool {
 
-	logg.LogKeys["DEBUG"] = true
-	logg.LogKeys["NEURVOLVE"] = true
+	logg.LogLevel = logg.LOG_LEVEL_NORMAL
 
 	ng.SeedRandom()
 
@@ -36,14 +35,40 @@ func RunTopologyMutatingTrainer() {
 	if succeeded {
 		log.Printf("Successfully trained net: %v", ng.JsonString(cortexTrained))
 	}
+
 	if !succeeded {
-		panic("failed to train neural net")
+		log.Printf("failed to train neural net")
 	}
 
 	// verify it can now solve the training set
 	verified = cortexTrained.Verify(examples)
 	if !verified {
-		panic("failed to verify neural net")
+		log.Printf("failed to verify neural net")
+		succeeded = false
 	}
+
+	return succeeded
+
+}
+
+func MultiRunTopologyMutatingTrainer() bool {
+
+	logg.LogKeys["MULTI_RUN"] = true
+
+	numSuccess := 0
+	for i := 0; i < 100; i++ {
+		logg.LogTo("MULTI_RUN", "Running trainer, iteration: %v", i)
+		success := RunTopologyMutatingTrainer()
+		if success {
+			logg.LogTo("MULTI_RUN", "iteration %v succeeded", i)
+			numSuccess += 1
+		} else {
+			logg.LogTo("MULTI_RUN", "iteration %v failed", i)
+		}
+	}
+
+	logg.LogTo("MULTI_RUN", "%v/100 runs succeeded", numSuccess)
+
+	return numSuccess == 100
 
 }
