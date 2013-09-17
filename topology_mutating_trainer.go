@@ -89,7 +89,7 @@ func (tmt *TopologyMutatingTrainer) Train(cortex *ng.Cortex, examples []*ng.Trai
 			currentCortex = originalCortex.Copy()
 			isValid := currentCortex.Validate()
 			if !isValid {
-				currentCortex.Repair()
+				currentCortex.Repair() // TODO: remove workaround
 				isValid = currentCortex.Validate()
 				if !isValid {
 					log.Panicf("Cortex could not be repaired")
