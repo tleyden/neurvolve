@@ -14,6 +14,65 @@ type StochasticHillClimber struct {
 	MaxAttempts                int
 }
 
+func (shc *StochasticHillClimber) TrainScape(cortex *ng.Cortex, scape Scape) (fittestNeuralNet *ng.Cortex, succeeded bool) {
+
+	numAttempts := 0
+
+	fittestNeuralNet = cortex
+
+	// Apply NN to problem and save fitness
+	fitness := scape.Fitness(fittestNeuralNet)
+
+	if fitness > shc.FitnessThreshold {
+		succeeded = true
+		return
+	}
+
+	for i := 0; ; i++ {
+
+		// Save the genotype
+		candidateNeuralNet := fittestNeuralNet.Copy()
+
+		// Perturb synaptic weights and biases
+		shc.perturbParameters(candidateNeuralNet)
+
+		// Re-Apply NN to problem
+		candidateFitness := scape.Fitness(candidateNeuralNet)
+
+		// If fitness of perturbed NN is higher, discard original NN and keep new
+		// If fitness of original is higher, discard perturbed and keep old.
+
+		if candidateFitness > fitness {
+			logg.LogTo("DEBUG", "i: %v candidateFitness: %v > fitness: %v", i, candidateFitness, fitness)
+			i = 0
+			fittestNeuralNet = candidateNeuralNet
+			fitness = candidateFitness
+		}
+
+		if ng.IntModuloProper(i, shc.MaxIterationsBeforeRestart) {
+			log.Printf("** restart hill climber.  fitness: %f i/max: %d/%d", fitness, numAttempts, shc.MaxAttempts)
+			numAttempts += 1
+			i = 0
+			shc.resetParametersToRandom(fittestNeuralNet)
+		}
+
+		if candidateFitness > shc.FitnessThreshold {
+			logg.LogTo("DEBUG", "candidateFitness: %v > Threshold.  Success at i=%v", candidateFitness, i)
+			succeeded = true
+			break
+		}
+
+		if numAttempts >= shc.MaxAttempts {
+			succeeded = false
+			break
+		}
+
+	}
+
+	return
+
+}
+
 func (shc *StochasticHillClimber) Train(cortex *ng.Cortex, examples []*ng.TrainingSample) (fittestNeuralNet *ng.Cortex, succeeded bool) {
 
 	numAttempts := 0
