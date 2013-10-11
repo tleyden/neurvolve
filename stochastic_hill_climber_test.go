@@ -59,7 +59,7 @@ func DisabledTestUnmarshalCortexFitness(t *testing.T) {
 		MaxAttempts:                10,
 	}
 	examples := ng.XnorTrainingSamples()
-	cortexTrained, succeeded := shc.Train(cortex, examples)
+	cortexTrained, succeeded := shc.TrainExamples(cortex, examples)
 	assert.True(t, succeeded)
 
 	// verify it can now solve the training set

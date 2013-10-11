@@ -2,7 +2,14 @@ package main
 
 import (
 	"github.com/couchbaselabs/logg"
+	ng "github.com/tleyden/neurgo"
 )
+
+func init() {
+	logg.LogKeys["MAIN"] = true
+	logg.LogKeys["DEBUG"] = true
+	ng.SeedRandom()
+}
 
 // How to run this code:
 // $ cd examples

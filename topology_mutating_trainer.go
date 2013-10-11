@@ -70,7 +70,7 @@ func (tmt *TopologyMutatingTrainer) Train(cortex *ng.Cortex, examples []*ng.Trai
 			MaxIterationsBeforeRestart: 20000,
 			MaxAttempts:                10,
 		}
-		fittestCortex, succeeded = shc.Train(currentCortex, examples)
+		fittestCortex, succeeded = shc.TrainExamples(currentCortex, examples)
 		log.Printf("stochastic hill climber finished.  succeeded: %v", succeeded)
 
 		if succeeded {
