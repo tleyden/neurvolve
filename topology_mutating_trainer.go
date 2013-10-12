@@ -11,6 +11,7 @@ type TopologyMutatingTrainer struct {
 	MaxIterationsBeforeRestart int
 	MaxAttempts                int
 	NumOutputLayerNodes        int
+	WeightSaturationRange      []float64
 }
 
 func (tmt *TopologyMutatingTrainer) Train(cortex *ng.Cortex, examples []*ng.TrainingSample) (fittestCortex *ng.Cortex, succeeded bool) {
@@ -69,6 +70,7 @@ func (tmt *TopologyMutatingTrainer) Train(cortex *ng.Cortex, examples []*ng.Trai
 			FitnessThreshold:           ng.FITNESS_THRESHOLD,
 			MaxIterationsBeforeRestart: 20000,
 			MaxAttempts:                10,
+			WeightSaturationRange:      tmt.WeightSaturationRange,
 		}
 		fittestCortex, succeeded = shc.TrainExamples(currentCortex, examples)
 		log.Printf("stochastic hill climber finished.  succeeded: %v", succeeded)

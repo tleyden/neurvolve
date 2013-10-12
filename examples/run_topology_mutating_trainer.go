@@ -30,6 +30,7 @@ func RunTopologyMutatingTrainer() bool {
 		MaxAttempts:                100,
 		MaxIterationsBeforeRestart: 5,
 		NumOutputLayerNodes:        1,
+		WeightSaturationRange:      []float64{-10000, 10000},
 	}
 	cortexTrained, succeeded := tmt.Train(cortex, examples)
 	if succeeded {

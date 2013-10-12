@@ -512,7 +512,8 @@ func NeuronMutateWeights(neuron *ng.Neuron) (bool, MutateResult) {
 	didPerturbAnyWeights := false
 	probability := parameterPerturbProbability(neuron)
 	for _, cxn := range neuron.Inbound {
-		didPerturbWeight := possiblyPerturbConnection(cxn, probability)
+		saturationBounds := []float64{-100000, 100000}
+		didPerturbWeight := possiblyPerturbConnection(cxn, probability, saturationBounds)
 		if didPerturbWeight == true {
 			didPerturbAnyWeights = true
 		}

@@ -17,8 +17,10 @@ func TestPerturbParameters(t *testing.T) {
 	nnJson, _ := json.Marshal(cortex)
 	nnJsonString := fmt.Sprintf("%s", nnJson)
 
-	shc := new(StochasticHillClimber)
-
+	saturationBounds := []float64{-100000, 10000}
+	shc := StochasticHillClimber{
+		WeightSaturationRange: saturationBounds,
+	}
 	shc.perturbParameters(cortex)
 
 	nnJsonAfter, _ := json.Marshal(cortex)

@@ -7,7 +7,7 @@ import (
 
 func init() {
 	logg.LogKeys["MAIN"] = true
-	logg.LogKeys["DEBUG"] = true
+	logg.LogKeys["DEBUG"] = false
 	ng.SeedRandom()
 }
 

@@ -3,7 +3,6 @@ package neurvolve
 import (
 	"github.com/couchbaselabs/logg"
 	ng "github.com/tleyden/neurgo"
-	"log"
 	"math"
 	"math/rand"
 )
@@ -12,9 +11,12 @@ type StochasticHillClimber struct {
 	FitnessThreshold           float64
 	MaxIterationsBeforeRestart int
 	MaxAttempts                int
+	WeightSaturationRange      []float64
 }
 
 func (shc *StochasticHillClimber) Train(cortex *ng.Cortex, scape Scape) (fittestNeuralNet *ng.Cortex, succeeded bool) {
+
+	shc.validate()
 
 	numAttempts := 0
 
@@ -22,7 +24,7 @@ func (shc *StochasticHillClimber) Train(cortex *ng.Cortex, scape Scape) (fittest
 
 	// Apply NN to problem and save fitness
 	fitness := scape.Fitness(fittestNeuralNet)
-	logg.LogTo("DEBUG", "initial fitness: %v", fitness)
+	logg.LogTo("MAIN", "initial fitness: %v", fitness)
 
 	if fitness > shc.FitnessThreshold {
 		succeeded = true
@@ -45,21 +47,21 @@ func (shc *StochasticHillClimber) Train(cortex *ng.Cortex, scape Scape) (fittest
 		// If fitness of original is higher, discard perturbed and keep old.
 
 		if candidateFitness > fitness {
-			logg.LogTo("DEBUG", "i: %v candidateFitness: %v > fitness: %v", i, candidateFitness, fitness)
+			logg.LogTo("MAIN", "i: %v candidateFitness: %v > fitness: %v", i, candidateFitness, fitness)
 			i = 0
 			fittestNeuralNet = candidateNeuralNet
 			fitness = candidateFitness
 		}
 
 		if ng.IntModuloProper(i, shc.MaxIterationsBeforeRestart) {
-			log.Printf("** restart hill climber.  fitness: %f i/max: %d/%d", fitness, numAttempts, shc.MaxAttempts)
+			logg.LogTo("MAIN", "** restart hill climber.  fitness: %f i/max: %d/%d", fitness, numAttempts, shc.MaxAttempts)
 			numAttempts += 1
 			i = 0
 			shc.resetParametersToRandom(fittestNeuralNet)
 		}
 
 		if candidateFitness > shc.FitnessThreshold {
-			logg.LogTo("DEBUG", "candidateFitness: %v > Threshold.  Success at i=%v", candidateFitness, i)
+			logg.LogTo("MAIN", "candidateFitness: %v > Threshold.  Success at i=%v", candidateFitness, i)
 			succeeded = true
 			break
 		}
@@ -156,7 +158,7 @@ func (shc *StochasticHillClimber) perturbNeuron(neuron *ng.Neuron) {
 	for {
 		didPerturbWeight := false
 		for _, cxn := range neuron.Inbound {
-			didPerturbWeight = possiblyPerturbConnection(cxn, probability)
+			didPerturbWeight = shc.possiblyPerturbConnection(cxn, probability)
 		}
 
 		didPerturbBias := shc.possiblyPerturbBias(neuron, probability)
@@ -178,12 +180,12 @@ func parameterPerturbProbability(neuron *ng.Neuron) float64 {
 	return 1 / math.Sqrt(float64(numWeights))
 }
 
-func possiblyPerturbConnection(cxn *ng.InboundConnection, probability float64) bool {
+func possiblyPerturbConnection(cxn *ng.InboundConnection, probability float64, saturationBounds []float64) bool {
 
 	didPerturb := false
 	for j, weight := range cxn.Weights {
 		if rand.Float64() < probability {
-			perturbedWeight := perturbParameter(weight)
+			perturbedWeight := perturbParameter(weight, saturationBounds)
 			cxn.Weights[j] = perturbedWeight
 			didPerturb = true
 		}
@@ -192,20 +194,40 @@ func possiblyPerturbConnection(cxn *ng.InboundConnection, probability float64) b
 
 }
 
+func (shc *StochasticHillClimber) possiblyPerturbConnection(cxn *ng.InboundConnection, probability float64) bool {
+	return possiblyPerturbConnection(cxn, probability, shc.WeightSaturationRange)
+}
+
 func (shc *StochasticHillClimber) possiblyPerturbBias(neuron *ng.Neuron, probability float64) bool {
 	didPerturb := false
 	if rand.Float64() < probability {
 		bias := neuron.Bias
-		perturbedBias := perturbParameter(bias)
+		perturbedBias := perturbParameter(bias, shc.WeightSaturationRange)
 		neuron.Bias = perturbedBias
 		didPerturb = true
 	}
 	return didPerturb
 }
 
-func perturbParameter(parameter float64) float64 {
+func (shc *StochasticHillClimber) validate() {
+	if len(shc.WeightSaturationRange) == 0 {
+		logg.LogPanic("Invalid (empty) WeightSaturationRange")
+	}
+}
+
+func perturbParameter(parameter float64, saturationBounds []float64) float64 {
 
 	parameter += ng.RandomInRange(-1*math.Pi, math.Pi)
+
+	lowerBound := saturationBounds[0]
+	upperBound := saturationBounds[1]
+
+	if parameter < lowerBound {
+		parameter = lowerBound
+	} else if parameter > upperBound {
+		parameter = upperBound
+	}
+
 	return parameter
 
 }

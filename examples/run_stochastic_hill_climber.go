@@ -4,6 +4,7 @@ import (
 	"github.com/couchbaselabs/logg"
 	ng "github.com/tleyden/neurgo"
 	nv "github.com/tleyden/neurvolve"
+	"math"
 )
 
 func RunStochasticHillClimber() {
@@ -26,6 +27,7 @@ func RunStochasticHillClimber() {
 		FitnessThreshold:           ng.FITNESS_THRESHOLD,
 		MaxIterationsBeforeRestart: 100000,
 		MaxAttempts:                10,
+		WeightSaturationRange:      []float64{-100 * math.Pi, 100 * math.Pi},
 	}
 	cortexTrained, succeeded := shc.TrainExamples(cortex, examples)
 	if !succeeded {
