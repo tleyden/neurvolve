@@ -51,6 +51,13 @@ func (shc *StochasticHillClimber) Train(cortex *ng.Cortex, scape Scape) (fittest
 			i = 0
 			fittestNeuralNet = candidateNeuralNet
 			fitness = candidateFitness
+
+		}
+
+		if candidateFitness > shc.FitnessThreshold {
+			logg.LogTo("MAIN", "candidateFitness: %v > Threshold.  Success at i=%v", candidateFitness, i)
+			succeeded = true
+			break
 		}
 
 		if ng.IntModuloProper(i, shc.MaxIterationsBeforeRestart) {
@@ -58,12 +65,6 @@ func (shc *StochasticHillClimber) Train(cortex *ng.Cortex, scape Scape) (fittest
 			numAttempts += 1
 			i = 0
 			shc.resetParametersToRandom(fittestNeuralNet)
-		}
-
-		if candidateFitness > shc.FitnessThreshold {
-			logg.LogTo("MAIN", "candidateFitness: %v > Threshold.  Success at i=%v", candidateFitness, i)
-			succeeded = true
-			break
 		}
 
 		if numAttempts >= shc.MaxAttempts {
