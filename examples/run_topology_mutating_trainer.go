@@ -32,7 +32,7 @@ func RunTopologyMutatingTrainer() bool {
 		NumOutputLayerNodes:        1,
 		WeightSaturationRange:      []float64{-10000, 10000},
 	}
-	cortexTrained, succeeded := tmt.Train(cortex, examples)
+	cortexTrained, succeeded := tmt.TrainExamples(cortex, examples)
 	if succeeded {
 		log.Printf("Successfully trained net: %v", ng.JsonString(cortexTrained))
 	}
