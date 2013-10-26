@@ -7,16 +7,17 @@ import (
 )
 
 type TopologyMutatingTrainer struct {
-	FitnessThreshold           float64
 	MaxIterationsBeforeRestart int
 	MaxAttempts                int
 	NumOutputLayerNodes        int
-	WeightSaturationRange      []float64
+	StochasticHillClimber      *StochasticHillClimber
 }
 
 func (tmt *TopologyMutatingTrainer) Train(cortex *ng.Cortex, scape Scape) (fittestCortex *ng.Cortex, succeeded bool) {
 
 	ng.SeedRandom()
+
+	shc := tmt.StochasticHillClimber
 
 	includeNonTopological := false
 	mutators := CortexMutatorsNonRecurrent(includeNonTopological)
@@ -29,7 +30,7 @@ func (tmt *TopologyMutatingTrainer) Train(cortex *ng.Cortex, scape Scape) (fitte
 	// Apply NN to problem and save fitness
 	fitness := scape.Fitness(currentCortex)
 
-	if fitness > tmt.FitnessThreshold {
+	if fitness > shc.FitnessThreshold {
 		succeeded = true
 		return
 	}
@@ -66,12 +67,6 @@ func (tmt *TopologyMutatingTrainer) Train(cortex *ng.Cortex, scape Scape) (fitte
 		log.Printf("run stochastic hill climber")
 
 		// memetic step: call stochastic hill climber and see if it can solve it
-		shc := &StochasticHillClimber{
-			FitnessThreshold:           ng.FITNESS_THRESHOLD,
-			MaxIterationsBeforeRestart: 20000,
-			MaxAttempts:                10,
-			WeightSaturationRange:      tmt.WeightSaturationRange,
-		}
 		fittestCortex, succeeded = shc.Train(currentCortex, scape)
 		log.Printf("stochastic hill climber finished.  succeeded: %v", succeeded)
 

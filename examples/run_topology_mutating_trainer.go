@@ -25,12 +25,18 @@ func RunTopologyMutatingTrainer() bool {
 		panic("neural net already trained, nothing to do")
 	}
 
-	tmt := &nv.TopologyMutatingTrainer{
+	shc := &nv.StochasticHillClimber{
 		FitnessThreshold:           ng.FITNESS_THRESHOLD,
+		MaxIterationsBeforeRestart: 20000,
+		MaxAttempts:                10,
+		WeightSaturationRange:      []float64{-10000, 10000},
+	}
+
+	tmt := &nv.TopologyMutatingTrainer{
 		MaxAttempts:                100,
 		MaxIterationsBeforeRestart: 5,
 		NumOutputLayerNodes:        1,
-		WeightSaturationRange:      []float64{-10000, 10000},
+		StochasticHillClimber:      shc,
 	}
 	cortexTrained, succeeded := tmt.TrainExamples(cortex, examples)
 	if succeeded {
