@@ -2,14 +2,13 @@ package neurvolve
 
 import (
 	"fmt"
+	"github.com/couchbaselabs/logg"
 	ng "github.com/tleyden/neurgo"
-	"log"
 )
 
 type TopologyMutatingTrainer struct {
 	MaxIterationsBeforeRestart int
 	MaxAttempts                int
-	NumOutputLayerNodes        int
 	StochasticHillClimber      *StochasticHillClimber
 }
 
@@ -37,7 +36,7 @@ func (tmt *TopologyMutatingTrainer) Train(cortex *ng.Cortex, scape Scape) (fitte
 
 	for i := 0; ; i++ {
 
-		log.Printf("before mutate.  i/max: %d/%d", i, tmt.MaxAttempts)
+		logg.LogTo("MAIN", "Before mutate.  i/max: %d/%d", i, tmt.MaxAttempts)
 
 		// before we mutate the cortex, we need to init it,
 		// otherwise things like Outsplice will fail because
@@ -49,26 +48,26 @@ func (tmt *TopologyMutatingTrainer) Train(cortex *ng.Cortex, scape Scape) (fitte
 		mutator := mutators[randInt]
 		ok, _ := mutator(currentCortex)
 		if !ok {
-			log.Printf("mutate didn't work, retrying...")
+			logg.LogTo("MAIN", "Mutate didn't work, retrying...")
 			continue
 		}
 
 		isValid := currentCortex.Validate()
 		if !isValid {
-			log.Panicf("Cortex did not validate")
+			logg.LogPanic("Cortex did not validate")
 		}
 
 		filenameJson := fmt.Sprintf("cortex-%v.json", i)
 		currentCortex.MarshalJSONToFile(filenameJson)
 		filenameSvg := fmt.Sprintf("cortex-%v.svg", i)
 		currentCortex.RenderSVGFile(filenameSvg)
-		log.Printf("after mutate. cortex written to: %v and %v", filenameSvg, filenameJson)
+		logg.LogTo("MAIN", "Post mutate cortex svg: %v json: %v", filenameSvg, filenameJson)
 
-		log.Printf("run stochastic hill climber")
+		logg.LogTo("MAIN", "Run stochastic hill climber..")
 
 		// memetic step: call stochastic hill climber and see if it can solve it
 		fittestCortex, succeeded = shc.Train(currentCortex, scape)
-		log.Printf("stochastic hill climber finished.  succeeded: %v", succeeded)
+		logg.LogTo("MAIN", "stochastic hill climber finished.  succeeded: %v", succeeded)
 
 		if succeeded {
 			succeeded = true
@@ -81,7 +80,7 @@ func (tmt *TopologyMutatingTrainer) Train(cortex *ng.Cortex, scape Scape) (fitte
 		}
 
 		if ng.IntModuloProper(i, tmt.MaxIterationsBeforeRestart) {
-			log.Printf("** restart.  i/max: %d/%d", i, tmt.MaxAttempts)
+			logg.LogTo("MAIN", "** Restart .  i/max: %d/%d", i, tmt.MaxAttempts)
 
 			currentCortex = originalCortex.Copy()
 			isValid := currentCortex.Validate()
@@ -89,7 +88,7 @@ func (tmt *TopologyMutatingTrainer) Train(cortex *ng.Cortex, scape Scape) (fitte
 				currentCortex.Repair() // TODO: remove workaround
 				isValid = currentCortex.Validate()
 				if !isValid {
-					log.Panicf("Cortex could not be repaired")
+					logg.LogPanic("Cortex could not be repaired")
 				}
 			}
 

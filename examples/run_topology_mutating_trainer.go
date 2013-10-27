@@ -4,12 +4,9 @@ import (
 	"github.com/couchbaselabs/logg"
 	ng "github.com/tleyden/neurgo"
 	nv "github.com/tleyden/neurvolve"
-	"log"
 )
 
 func RunTopologyMutatingTrainer() bool {
-
-	logg.LogLevel = logg.LOG_LEVEL_NORMAL
 
 	ng.SeedRandom()
 
@@ -35,23 +32,23 @@ func RunTopologyMutatingTrainer() bool {
 	tmt := &nv.TopologyMutatingTrainer{
 		MaxAttempts:                100,
 		MaxIterationsBeforeRestart: 5,
-		NumOutputLayerNodes:        1,
 		StochasticHillClimber:      shc,
 	}
 	cortexTrained, succeeded := tmt.TrainExamples(cortex, examples)
 	if succeeded {
-		log.Printf("Successfully trained net: %v", ng.JsonString(cortexTrained))
+		logg.LogTo("MAIN", "Successfully trained net: %v", ng.JsonString(cortexTrained))
+
+		// verify it can now solve the training set
+		verified = cortexTrained.Verify(examples)
+		if !verified {
+			logg.LogTo("MAIN", "Failed to verify neural net")
+			succeeded = false
+		}
+
 	}
 
 	if !succeeded {
-		log.Printf("failed to train neural net")
-	}
-
-	// verify it can now solve the training set
-	verified = cortexTrained.Verify(examples)
-	if !verified {
-		log.Printf("failed to verify neural net")
-		succeeded = false
+		logg.LogTo("MAIN", "Failed to train neural net")
 	}
 
 	return succeeded
