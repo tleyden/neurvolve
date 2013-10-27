@@ -24,7 +24,6 @@ func (tmt *TopologyMutatingTrainer) Train(cortex *ng.Cortex, scape Scape) (fitte
 	originalCortex := cortex.Copy()
 
 	currentCortex := cortex
-	currentCortex.RenderSVGFile("/Users/traun/tmp/current.svg")
 
 	// Apply NN to problem and save fitness
 	logg.LogTo("MAIN", "Get initial fitness")
