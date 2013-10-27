@@ -24,7 +24,7 @@ func (shc *StochasticHillClimber) Train(cortex *ng.Cortex, scape Scape) (fittest
 
 	// Apply NN to problem and save fitness
 	fitness := scape.Fitness(fittestNeuralNet)
-	logg.LogTo("MAIN", "initial fitness: %v", fitness)
+	logg.LogTo("MAIN", "Initial fitness: %v", fitness)
 
 	if fitness > shc.FitnessThreshold {
 		succeeded = true

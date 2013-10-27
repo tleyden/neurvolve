@@ -27,7 +27,9 @@ func (tmt *TopologyMutatingTrainer) Train(cortex *ng.Cortex, scape Scape) (fitte
 	currentCortex.RenderSVGFile("/Users/traun/tmp/current.svg")
 
 	// Apply NN to problem and save fitness
+	logg.LogTo("MAIN", "Get initial fitness")
 	fitness := scape.Fitness(currentCortex)
+	logg.LogTo("MAIN", "Initial fitness: %v", fitness)
 
 	if fitness > shc.FitnessThreshold {
 		succeeded = true
