@@ -13,3 +13,10 @@ import (
 type Scape interface {
 	Fitness(cortex *ng.Cortex) float64
 }
+
+// This is a two player scape where the Fitness will be calculated
+// against a certain opponent rather than against training examples
+// or a scape that already has the opponent "baked in"
+type ScapeTwoPlayer interface {
+	Fitness(cortex *ng.Cortex, opponent *ng.Cortex) float64
+}
