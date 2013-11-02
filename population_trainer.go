@@ -3,17 +3,13 @@ package neurvolve
 import (
 	"github.com/couchbaselabs/logg"
 	ng "github.com/tleyden/neurgo"
+	"sort"
 )
 
 type PopulationTrainer struct {
 	CortexMutator    CortexMutator
 	FitnessThreshold float64
 	MaxGenerations   int
-}
-
-type FitCortex struct {
-	Cortex  *ng.Cortex
-	Fitness float64
 }
 
 func (pt *PopulationTrainer) Train(population []*ng.Cortex, scape ScapeTwoPlayer) (trainedPopulation []FitCortex, succeeded bool) {
@@ -88,9 +84,8 @@ func (pt *PopulationTrainer) chooseRandomOpponents(cortex *ng.Cortex, population
 
 }
 
-func (pt *PopulationTrainer) sortByFitness(population []FitCortex) (sortedPopulation []FitCortex) {
-
-	// FIXME..
+func (pt *PopulationTrainer) sortByFitness(population FitCortexArray) (sortedPopulation []FitCortex) {
+	sort.Sort(population)
 	sortedPopulation = population
 	return
 }

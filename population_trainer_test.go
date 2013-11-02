@@ -19,3 +19,18 @@ func TestChooseRandomOpponents(t *testing.T) {
 	assert.Equals(t, opponents[0], opponent)
 
 }
+
+func TestSortByFitness(t *testing.T) {
+
+	pt := &PopulationTrainer{}
+
+	fitCortexHigh := FitCortex{Fitness: 100.0}
+	fitCortexLow := FitCortex{Fitness: -100.0}
+	population := []FitCortex{fitCortexLow, fitCortexHigh}
+
+	sortedPopulation := pt.sortByFitness(population)
+	assert.Equals(t, len(population), len(sortedPopulation))
+	assert.Equals(t, sortedPopulation[0], fitCortexHigh)
+	assert.Equals(t, sortedPopulation[1], fitCortexLow)
+
+}
