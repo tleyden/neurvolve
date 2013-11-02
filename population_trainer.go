@@ -46,7 +46,7 @@ func (pt *PopulationTrainer) computeFitness(population []*ng.Cortex, scape Scape
 		}
 		fitCortex := FitCortex{
 			Cortex:  cortex,
-			Fitness: pt.calculateAverage(fitnessScores),
+			Fitness: ng.Average(fitnessScores),
 		}
 		fitCortexes[i] = fitCortex
 	}
@@ -54,11 +54,6 @@ func (pt *PopulationTrainer) computeFitness(population []*ng.Cortex, scape Scape
 	fitCortexes = pt.sortByFitness(fitCortexes)
 
 	return
-}
-
-func (pt *PopulationTrainer) calculateAverage(fitnessScores []float64) float64 {
-	// fixme
-	return 0.0
 }
 
 func (pt *PopulationTrainer) chooseRandomOpponents(cortex *ng.Cortex, population []*ng.Cortex, numOpponents int) (opponents []*ng.Cortex) {
@@ -91,15 +86,32 @@ func (pt *PopulationTrainer) sortByFitness(population FitCortexArray) (sortedPop
 }
 
 func (pt *PopulationTrainer) exceededFitnessThreshold(fitCortexes []FitCortex) bool {
-
-	// FIXME
+	for _, fitCortex := range fitCortexes {
+		if fitCortex.Fitness >= pt.FitnessThreshold {
+			return true
+		}
+	}
 	return false
 }
 
 func (pt *PopulationTrainer) cullPopulation(population []FitCortex) (culledPopulation []FitCortex) {
 
-	// FIXME
-	culledPopulation = population
+	population = pt.sortByFitness(population)
+
+	if len(population)%2 != 0 {
+		logg.LogPanic("population size must be even")
+	}
+
+	culledPopulationSize := len(population) / 2
+	culledPopulation = make([]FitCortex, 0)
+
+	for i, fitCortex := range population {
+		culledPopulation = append(culledPopulation, fitCortex)
+		if i >= (culledPopulationSize - 1) {
+			break
+		}
+	}
+
 	return
 }
 

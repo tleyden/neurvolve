@@ -34,3 +34,15 @@ func TestSortByFitness(t *testing.T) {
 	assert.Equals(t, sortedPopulation[1], fitCortexLow)
 
 }
+
+func TestCullPopulation(t *testing.T) {
+	fitCortexHigh := FitCortex{Fitness: 100.0}
+	fitCortexLow := FitCortex{Fitness: -100.0}
+	population := []FitCortex{fitCortexLow, fitCortexHigh}
+
+	pt := &PopulationTrainer{}
+	culledPopulation := pt.cullPopulation(population)
+	assert.Equals(t, len(culledPopulation), 1)
+	assert.Equals(t, culledPopulation[0], fitCortexHigh)
+
+}
