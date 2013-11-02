@@ -42,9 +42,10 @@ func (pt *PopulationTrainer) computeFitness(population []*ng.Cortex, scape Scape
 
 	fitCortexes = make([]FitCortex, len(population))
 	for i, cortex := range population {
-		opponents := pt.chooseRandomOpponents(population, 5)
+		opponents := pt.chooseRandomOpponents(cortex, population, 5)
 		fitnessScores := make([]float64, len(opponents))
 		for j, opponent := range opponents {
+			logg.LogTo("DEBUG", "Calc fitness of cortex vs opponent")
 			fitnessScores[j] = scape.Fitness(cortex, opponent)
 		}
 		fitCortex := FitCortex{
@@ -64,10 +65,27 @@ func (pt *PopulationTrainer) calculateAverage(fitnessScores []float64) float64 {
 	return 0.0
 }
 
-func (pt *PopulationTrainer) chooseRandomOpponents(population []*ng.Cortex, numOpponents int) (opponents []*ng.Cortex) {
-	// FIXME
-	opponents = population
+func (pt *PopulationTrainer) chooseRandomOpponents(cortex *ng.Cortex, population []*ng.Cortex, numOpponents int) (opponents []*ng.Cortex) {
+
+	if numOpponents >= len(population) {
+		logg.LogPanic("Not enough members of population to choose %d opponents", numOpponents)
+	}
+
+	opponents = make([]*ng.Cortex, 0)
+	for i := 0; i < numOpponents; i++ {
+		for {
+			randInt := RandomIntInRange(0, len(population))
+			randomCortex := population[randInt]
+			if randomCortex == cortex {
+				continue
+			}
+			opponents = append(opponents, randomCortex)
+			break
+		}
+
+	}
 	return
+
 }
 
 func (pt *PopulationTrainer) sortByFitness(population []FitCortex) (sortedPopulation []FitCortex) {
