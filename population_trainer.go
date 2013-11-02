@@ -1,6 +1,7 @@
 package neurvolve
 
 import (
+	"github.com/couchbaselabs/logg"
 	ng "github.com/tleyden/neurgo"
 )
 
@@ -15,7 +16,7 @@ type FitCortex struct {
 	Fitness float64
 }
 
-func (pt *PopulationTrainer) Train(population []*ng.Cortex, scape ScapeTwoPlayer) (population []FitCortex, succeeded bool) {
+func (pt *PopulationTrainer) Train(population []*ng.Cortex, scape ScapeTwoPlayer) (trainedPopulation []FitCortex, succeeded bool) {
 
 	for i := 0; i < pt.MaxGenerations; i++ {
 
@@ -23,16 +24,16 @@ func (pt *PopulationTrainer) Train(population []*ng.Cortex, scape ScapeTwoPlayer
 
 		if pt.exceededFitnessThreshold(fitCortexes) {
 			succeeded = true
-			population = fitCortexes
+			trainedPopulation = fitCortexes
 			return
 		}
 
 		fitCortexes = pt.cullPopulation(fitCortexes)
 		fitCortexes = pt.generateOffspring(fitCortexes)
 
+		trainedPopulation = fitCortexes
 	}
 
-	population = fitCortexes
 	return
 
 }
@@ -58,12 +59,35 @@ func (pt *PopulationTrainer) computeFitness(population []*ng.Cortex, scape Scape
 	return
 }
 
+func (pt *PopulationTrainer) calculateAverage(fitnessScores []float64) float64 {
+	// fixme
+	return 0.0
+}
+
+func (pt *PopulationTrainer) chooseRandomOpponents(population []*ng.Cortex, numOpponents int) (opponents []*ng.Cortex) {
+	// FIXME
+	opponents = population
+	return
+}
+
+func (pt *PopulationTrainer) sortByFitness(population []FitCortex) (sortedPopulation []FitCortex) {
+
+	// FIXME..
+	sortedPopulation = population
+	return
+}
+
 func (pt *PopulationTrainer) exceededFitnessThreshold(fitCortexes []FitCortex) bool {
 
+	// FIXME
+	return false
 }
 
 func (pt *PopulationTrainer) cullPopulation(population []FitCortex) (culledPopulation []FitCortex) {
 
+	// FIXME
+	culledPopulation = population
+	return
 }
 
 func (pt *PopulationTrainer) generateOffspring(population []FitCortex) (withOffspring []FitCortex) {
@@ -71,7 +95,7 @@ func (pt *PopulationTrainer) generateOffspring(population []FitCortex) (withOffs
 	withOffspring = make([]FitCortex, 2*len(population))
 	withOffspring = append(withOffspring, population...)
 
-	for i, fitCortex := range population {
+	for _, fitCortex := range population {
 
 		cortex := fitCortex.Cortex
 		offspringCortex := cortex.Copy()
@@ -87,5 +111,7 @@ func (pt *PopulationTrainer) generateOffspring(population []FitCortex) (withOffs
 		withOffspring = append(withOffspring, fitCortexOffspring)
 
 	}
+
+	return
 
 }
