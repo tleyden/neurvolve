@@ -117,7 +117,8 @@ func (pt *PopulationTrainer) cullPopulation(population []FitCortex) (culledPopul
 
 func (pt *PopulationTrainer) generateOffspring(population []FitCortex) (withOffspring []FitCortex) {
 
-	withOffspring = make([]FitCortex, 2*len(population))
+	logg.LogTo("DEBUG", "generateOffspring called with pop len %d", len(population))
+	withOffspring = make([]FitCortex, 0)
 	withOffspring = append(withOffspring, population...)
 
 	for _, fitCortex := range population {
@@ -136,6 +137,8 @@ func (pt *PopulationTrainer) generateOffspring(population []FitCortex) (withOffs
 		withOffspring = append(withOffspring, fitCortexOffspring)
 
 	}
+
+	logg.LogTo("DEBUG", "generateOffspring returning pop len %d", len(withOffspring))
 
 	return
 
