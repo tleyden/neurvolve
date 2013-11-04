@@ -2,34 +2,12 @@ package neurvolve
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/couchbaselabs/go.assert"
 	"github.com/couchbaselabs/logg"
 	ng "github.com/tleyden/neurgo"
 	"log"
 	"testing"
 )
-
-func TestPerturbParameters(t *testing.T) {
-
-	cortex := ng.XnorCortex()
-
-	nnJson, _ := json.Marshal(cortex)
-	nnJsonString := fmt.Sprintf("%s", nnJson)
-
-	saturationBounds := []float64{-100000, 10000}
-	shc := StochasticHillClimber{
-		WeightSaturationRange: saturationBounds,
-	}
-	shc.perturbParameters(cortex)
-
-	nnJsonAfter, _ := json.Marshal(cortex)
-	nnJsonStringAfter := fmt.Sprintf("%s", nnJsonAfter)
-
-	// the json should be different after we perturb it
-	assert.NotEquals(t, nnJsonString, nnJsonStringAfter)
-
-}
 
 func DisabledTestUnmarshalCortexFitness(t *testing.T) {
 
