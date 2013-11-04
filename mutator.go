@@ -632,3 +632,9 @@ func AddOutlinkNonRecurrent(cortex *ng.Cortex) (bool, MutateResult) {
 	logg.LogTo("NEURVOLVE", "Mutate: AddOutlinkNonRecurrent")
 	return ReattemptingNeuronMutator(cortex, NeuronAddOutlinkNonRecurrent)
 }
+
+func NoOpMutator(cortex *ng.Cortex) (success bool, result MutateResult) {
+	success = true
+	result = "nothing"
+	return
+}
