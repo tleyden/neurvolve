@@ -603,6 +603,7 @@ func TestMutateAllWeightsBellCurve(t *testing.T) {
 			mutatedWeights := mutatedInboundConnection.Weights
 			assert.False(t, ng.VectorEquals(weights, mutatedWeights))
 		}
+		assert.False(t, neuron.Bias == mutatedNeuron.Bias)
 	}
 
 }
