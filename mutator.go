@@ -641,17 +641,23 @@ func NoOpMutator(cortex *ng.Cortex) (success bool, result MutateResult) {
 
 func MutateAllWeightsBellCurve(cortex *ng.Cortex) (success bool, result MutateResult) {
 
-	logg.LogTo("NEURVOLVE", "MutateAllWeightsBellCurve")
+	stdDev := DEFAULT_STD_DEVIATION
 
 	for _, neuron := range cortex.Neurons {
 		for _, inboundConnection := range neuron.Inbound {
 			weights := inboundConnection.Weights
 			for k, weight := range weights {
-				stdDev := DEFAULT_STD_DEVIATION
 				newWeight := perturbParameterBellCurve(weight, stdDev)
+				logg.LogTo("DEBUG", "weight %v -> %v", weight, newWeight)
+
 				weights[k] = newWeight
 			}
 		}
+
+		newBias := perturbParameterBellCurve(neuron.Bias, stdDev)
+		logg.LogTo("DEBUG", "bias %v -> %v", neuron.Bias, newBias)
+		neuron.Bias = newBias
+
 	}
 
 	success = true
