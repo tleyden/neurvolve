@@ -587,6 +587,26 @@ func TestMutatorsThatAlwaysMutate(t *testing.T) {
 
 }
 
+func TestMutateAllWeightsBellCurve(t *testing.T) {
+	testCortex := BasicCortex()
+	testCortexCopy := testCortex.Copy()
+
+	// make a copy and mutate weights
+	_, _ = MutateAllWeightsBellCurve(testCortexCopy)
+
+	// make sure all weights are different in copy
+	for _, neuron := range testCortex.Neurons {
+		mutatedNeuron := testCortexCopy.FindNeuron(neuron.NodeId)
+		for i, inboundConnection := range neuron.Inbound {
+			mutatedInboundConnection := mutatedNeuron.Inbound[i]
+			weights := inboundConnection.Weights
+			mutatedWeights := mutatedInboundConnection.Weights
+			assert.False(t, ng.VectorEquals(weights, mutatedWeights))
+		}
+	}
+
+}
+
 func verifyWeightsModified(neuron, neuronCopy *ng.Neuron) bool {
 	foundModifiedWeight := false
 
