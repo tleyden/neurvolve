@@ -15,7 +15,7 @@ func RunStochasticHillClimber() {
 	examples := ng.XnorTrainingSamples()
 
 	// create netwwork with topology capable of solving XNOR
-	cortex := XnorCortexUntrained()
+	cortex := ng.XnorCortexUntrained()
 
 	// verify it can not yet solve the training set (since training would be useless in that case)
 	verified := cortex.Verify(examples)
@@ -40,76 +40,8 @@ func RunStochasticHillClimber() {
 		panic("could not verify neural net")
 	}
 
+	logg.LogTo("DEBUG", "trained cortex: %v", cortexTrained)
+
 	logg.Log("done")
-
-}
-
-func XnorCortexUntrained() *ng.Cortex {
-
-	sensorNodeId := ng.NewSensorId("sensor", 0.0)
-	hiddenNeuron1NodeId := ng.NewNeuronId("hidden-neuron1", 0.25)
-	hiddenNeuron2NodeId := ng.NewNeuronId("hidden-neuron2", 0.25)
-	outputNeuronNodeIde := ng.NewNeuronId("output-neuron", 0.35)
-
-	actuatorNodeId := ng.NewActuatorId("actuator", 0.5)
-
-	hiddenNeuron1 := &ng.Neuron{
-		ActivationFunction: ng.EncodableSigmoid(),
-		NodeId:             hiddenNeuron1NodeId,
-		Bias:               nv.RandomBias(),
-	}
-	hiddenNeuron1.Init()
-
-	hiddenNeuron2 := &ng.Neuron{
-		ActivationFunction: ng.EncodableSigmoid(),
-		NodeId:             hiddenNeuron2NodeId,
-		Bias:               nv.RandomBias(),
-	}
-	hiddenNeuron2.Init()
-
-	outputNeuron := &ng.Neuron{
-		ActivationFunction: ng.EncodableSigmoid(),
-		NodeId:             outputNeuronNodeIde,
-		Bias:               nv.RandomBias(),
-	}
-	outputNeuron.Init()
-
-	sensor := &ng.Sensor{
-		NodeId:       sensorNodeId,
-		VectorLength: 2,
-	}
-	sensor.Init()
-
-	actuator := &ng.Actuator{
-		NodeId:       actuatorNodeId,
-		VectorLength: 1,
-	}
-	actuator.Init()
-
-	sensor.ConnectOutbound(hiddenNeuron1)
-	hiddenNeuron1.ConnectInboundWeighted(sensor, []float64{20, 20})
-
-	sensor.ConnectOutbound(hiddenNeuron2)
-	hiddenNeuron2.ConnectInboundWeighted(sensor, []float64{-20, -20})
-
-	hiddenNeuron1.ConnectOutbound(outputNeuron)
-	outputNeuron.ConnectInboundWeighted(hiddenNeuron1, []float64{20})
-
-	hiddenNeuron2.ConnectOutbound(outputNeuron)
-	outputNeuron.ConnectInboundWeighted(hiddenNeuron2, []float64{20})
-
-	outputNeuron.ConnectOutbound(actuator)
-	actuator.ConnectInbound(outputNeuron)
-
-	nodeId := ng.NewCortexId("cortex")
-
-	cortex := &ng.Cortex{
-		NodeId:    nodeId,
-		Sensors:   []*ng.Sensor{sensor},
-		Neurons:   []*ng.Neuron{hiddenNeuron1, hiddenNeuron2, outputNeuron},
-		Actuators: []*ng.Actuator{actuator},
-	}
-
-	return cortex
 
 }
