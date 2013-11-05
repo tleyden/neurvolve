@@ -65,6 +65,7 @@ func (shc *StochasticHillClimber) Train(cortex *ng.Cortex, scape Scape) (fittest
 			numAttempts += 1
 			i = 0
 			shc.resetParametersToRandom(fittestNeuralNet)
+			ng.SeedRandom()
 		}
 
 		if numAttempts >= shc.MaxAttempts {
@@ -99,6 +100,7 @@ func PerturbParameters(cortex *ng.Cortex, saturationBounds []float64) {
 	neurons := chooseNeuronsToPerturb(cortex)
 
 	for _, neuron := range neurons {
+		logg.LogTo("DEBUG", "Going to perturb neuron: %v", neuron.NodeId.UUID)
 		perturbNeuron(neuron, saturationBounds)
 	}
 
@@ -109,11 +111,9 @@ func (shc *StochasticHillClimber) resetParametersToRandom(cortex *ng.Cortex) {
 	neurons := cortex.Neurons
 	for _, neuronNode := range neurons {
 		for _, cxn := range neuronNode.Inbound {
-			for j, _ := range cxn.Weights {
-				cxn.Weights[j] = ng.RandomInRange(-1*math.Pi, math.Pi)
-			}
+			cxn.Weights = ng.RandomWeights(len(cxn.Weights))
 		}
-		neuronNode.Bias = ng.RandomInRange(-1*math.Pi, math.Pi)
+		neuronNode.Bias = ng.RandomBias()
 	}
 
 }
@@ -187,6 +187,7 @@ func possiblyPerturbConnection(cxn *ng.InboundConnection, probability float64, s
 	for j, weight := range cxn.Weights {
 		if rand.Float64() < probability {
 			perturbedWeight := perturbParameter(weight, saturationBounds)
+			logg.LogTo("DEBUG", "weight %v -> %v", weight, perturbedWeight)
 			cxn.Weights[j] = perturbedWeight
 			didPerturb = true
 		}
@@ -201,6 +202,7 @@ func possiblyPerturbBias(neuron *ng.Neuron, probability float64, saturationBound
 		bias := neuron.Bias
 		perturbedBias := perturbParameter(bias, saturationBounds)
 		neuron.Bias = perturbedBias
+		logg.LogTo("DEBUG", "bias %v -> %v", bias, perturbedBias)
 		didPerturb = true
 	}
 	return didPerturb
