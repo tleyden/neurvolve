@@ -13,71 +13,69 @@ type PopulationTrainer struct {
 	NumOpponents     int
 }
 
-func (pt *PopulationTrainer) Train(population []*ng.Cortex, scape ScapeTwoPlayer) (trainedPopulation []FitCortex, succeeded bool) {
+func (pt *PopulationTrainer) Train(population []*ng.Cortex, scape ScapeTwoPlayer) (trainedPopulation []EvaluatedCortex, succeeded bool) {
 
-	fitCortexes := pt.fitPopulation(population)
+	evaldCortexes := pt.addEmptyFitnessScores(population)
 
 	for i := 0; i < pt.MaxGenerations; i++ {
 
-		fitCortexes = pt.computeFitness(fitCortexes, scape)
+		evaldCortexes = pt.computeFitness(evaldCortexes, scape)
+		logg.LogTo("MAIN", "Highest fitness after generation %d: %v", i, evaldCortexes[0].Fitness)
 
-		if pt.exceededFitnessThreshold(fitCortexes) {
+		if pt.exceededFitnessThreshold(evaldCortexes) {
 			succeeded = true
-			trainedPopulation = fitCortexes
+			trainedPopulation = evaldCortexes
 			return
 		}
 
-		fitCortexes = pt.cullPopulation(fitCortexes)
+		evaldCortexes = pt.cullPopulation(evaldCortexes)
 
-		fitCortexes = pt.generateOffspring(fitCortexes, scape)
+		evaldCortexes = pt.generateOffspring(evaldCortexes)
 
-		trainedPopulation = fitCortexes
+		trainedPopulation = evaldCortexes
 	}
 
 	return
 
 }
 
-func (pt *PopulationTrainer) fitPopulation(population []*ng.Cortex) (fitPopulation []FitCortex) {
+func (pt *PopulationTrainer) addEmptyFitnessScores(population []*ng.Cortex) (evaldPopulation []EvaluatedCortex) {
 
-	fitPopulation = make([]FitCortex, 0)
+	evaldPopulation = make([]EvaluatedCortex, 0)
 	for _, cortex := range population {
-		fitCortex := FitCortex{
+		evaldCortex := EvaluatedCortex{
 			Cortex:  cortex,
 			Fitness: 0.0,
 		}
-		fitPopulation = append(fitPopulation, fitCortex)
+		evaldPopulation = append(evaldPopulation, evaldCortex)
 	}
 	return
 
 }
 
-func (pt *PopulationTrainer) computeFitness(population []FitCortex, scape ScapeTwoPlayer) (fitCortexes []FitCortex) {
+func (pt *PopulationTrainer) computeFitness(population []EvaluatedCortex, scape ScapeTwoPlayer) (evaldCortexes []EvaluatedCortex) {
 
-	fitCortexes = make([]FitCortex, len(population))
-	for i, fitCortex := range population {
-		cortex := fitCortex.Cortex
+	evaldCortexes = make([]EvaluatedCortex, len(population))
+	for i, evaldCortex := range population {
+		cortex := evaldCortex.Cortex
 		opponents := pt.chooseRandomOpponents(cortex, population, pt.NumOpponents)
 		fitnessScores := make([]float64, len(opponents))
 		for j, opponent := range opponents {
 			fitnessScores[j] = scape.Fitness(cortex, opponent)
-			logg.LogTo("DEBUG", "Fitness of cortex vs opponent: %v", fitnessScores[j])
 		}
-		fitCortexUpdated := FitCortex{
+		evaldCortexUpdated := EvaluatedCortex{
 			Cortex:  cortex,
 			Fitness: ng.Average(fitnessScores),
 		}
-		fitCortexes[i] = fitCortexUpdated
+		evaldCortexes[i] = evaldCortexUpdated
 	}
 
-	fitCortexes = pt.sortByFitness(fitCortexes)
-	logg.LogTo("MAIN", "Highest fitness: %v", fitCortexes[0].Fitness)
-	logg.LogTo("MAIN", "Lowest fitness: %v", fitCortexes[len(fitCortexes)-1].Fitness)
+	evaldCortexes = pt.sortByFitness(evaldCortexes)
 
 	return
 }
 
-func (pt *PopulationTrainer) chooseRandomOpponents(cortex *ng.Cortex, population []FitCortex, numOpponents int) (opponents []*ng.Cortex) {
+func (pt *PopulationTrainer) chooseRandomOpponents(cortex *ng.Cortex, population []EvaluatedCortex, numOpponents int) (opponents []*ng.Cortex) {
 
 	if numOpponents >= len(population) {
 		logg.LogPanic("Not enough members of population to choose %d opponents", numOpponents)
@@ -87,11 +85,11 @@ func (pt *PopulationTrainer) chooseRandomOpponents(cortex *ng.Cortex, population
 	for i := 0; i < numOpponents; i++ {
 		for {
 			randInt := RandomIntInRange(0, len(population))
-			randomFitCortex := population[randInt]
-			if randomFitCortex.Cortex == cortex {
+			randomEvaluatedCortex := population[randInt]
+			if randomEvaluatedCortex.Cortex == cortex {
 				continue
 			}
-			opponents = append(opponents, randomFitCortex.Cortex)
+			opponents = append(opponents, randomEvaluatedCortex.Cortex)
 			break
 		}
 
@@ -100,22 +98,22 @@ func (pt *PopulationTrainer) chooseRandomOpponents(cortex *ng.Cortex, population
 
 }
 
-func (pt *PopulationTrainer) sortByFitness(population FitCortexArray) (sortedPopulation []FitCortex) {
+func (pt *PopulationTrainer) sortByFitness(population EvaluatedCortexArray) (sortedPopulation []EvaluatedCortex) {
 	sort.Sort(population)
 	sortedPopulation = population
 	return
 }
 
-func (pt *PopulationTrainer) exceededFitnessThreshold(fitCortexes []FitCortex) bool {
-	for _, fitCortex := range fitCortexes {
-		if fitCortex.Fitness >= pt.FitnessThreshold {
+func (pt *PopulationTrainer) exceededFitnessThreshold(evaldCortexes []EvaluatedCortex) bool {
+	for _, evaldCortex := range evaldCortexes {
+		if evaldCortex.Fitness >= pt.FitnessThreshold {
 			return true
 		}
 	}
 	return false
 }
 
-func (pt *PopulationTrainer) cullPopulation(population []FitCortex) (culledPopulation []FitCortex) {
+func (pt *PopulationTrainer) cullPopulation(population []EvaluatedCortex) (culledPopulation []EvaluatedCortex) {
 
 	population = pt.sortByFitness(population)
 
@@ -123,70 +121,41 @@ func (pt *PopulationTrainer) cullPopulation(population []FitCortex) (culledPopul
 		logg.LogPanic("population size must be even")
 	}
 
-	logg.LogTo("DEBUG", "Before cull, highest fitness %v", population[0].Fitness)
-	logg.LogTo("DEBUG", "Before cull, lowest fitness %v", population[len(population)-1].Fitness)
-
 	culledPopulationSize := len(population) / 2
-	culledPopulation = make([]FitCortex, 0)
+	culledPopulation = make([]EvaluatedCortex, 0)
 
-	for i, fitCortex := range population {
-		culledPopulation = append(culledPopulation, fitCortex)
+	for i, evaldCortex := range population {
+		culledPopulation = append(culledPopulation, evaldCortex)
 		if i >= (culledPopulationSize - 1) {
 			break
 		}
 	}
 
-	logg.LogTo("DEBUG", "After cull, highest fitness %v", culledPopulation[0].Fitness)
-	logg.LogTo("DEBUG", "After cull, lowest fitness %v", culledPopulation[len(culledPopulation)-1].Fitness)
-
 	return
 }
 
-func (pt *PopulationTrainer) generateOffspring(population []FitCortex, scape ScapeTwoPlayer) (withOffspring []FitCortex) {
+func (pt *PopulationTrainer) generateOffspring(population []EvaluatedCortex) (withOffspring []EvaluatedCortex) {
 
-	logg.LogTo("DEBUG", "generateOffspring called with pop len %d", len(population))
-	withOffspring = make([]FitCortex, 0)
+	withOffspring = make([]EvaluatedCortex, 0)
 	withOffspring = append(withOffspring, population...)
 
-	for i, fitCortex := range population {
+	for _, evaldCortex := range population {
 
-		cortex := fitCortex.Cortex
+		cortex := evaldCortex.Cortex
 		offspringCortex := cortex.Copy()
 		succeeded, _ := pt.CortexMutator(offspringCortex)
 		if !succeeded {
 			logg.LogPanic("Unable to mutate cortex: %v", offspringCortex)
 		}
 
-		// offspring should have different fitness than parent
-		if scape != nil {
-
-			offspringFitness := scape.Fitness(offspringCortex, cortex)
-			parentFitness := scape.Fitness(cortex, offspringCortex)
-			if offspringFitness == parentFitness {
-				logg.LogPanic("%v == %v", offspringFitness, parentFitness)
-			} else {
-
-				if offspringFitness > parentFitness && i == 0 {
-					logg.LogTo("MAIN", "%v > %v", offspringFitness, parentFitness)
-					logg.LogTo("MAIN", "fittest parent just produced more fit offspring")
-				}
-			}
-
-		}
-
-		fitCortexOffspring := FitCortex{
+		evaldCortexOffspring := EvaluatedCortex{
 			Cortex:  offspringCortex,
 			Fitness: 0.0,
 		}
 
-		logg.LogTo("DEBUG", "original: %v", cortex)
-		logg.LogTo("DEBUG", "offspring: %v", offspringCortex)
-
-		withOffspring = append(withOffspring, fitCortexOffspring)
+		withOffspring = append(withOffspring, evaldCortexOffspring)
 
 	}
-
-	logg.LogTo("DEBUG", "generateOffspring returning pop len %d", len(withOffspring))
 
 	return
 

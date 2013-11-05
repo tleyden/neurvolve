@@ -74,18 +74,18 @@ func TestChooseRandomOpponents(t *testing.T) {
 	pt := &PopulationTrainer{}
 
 	cortex := BasicCortex()
-	fitCortex := FitCortex{
+	evaldCortex := EvaluatedCortex{
 		Cortex:  cortex,
 		Fitness: 0.0,
 	}
 
 	opponent := BasicCortex()
-	fitOpponent := FitCortex{
+	fitOpponent := EvaluatedCortex{
 		Cortex:  opponent,
 		Fitness: 0.0,
 	}
 
-	population := []FitCortex{fitCortex, fitOpponent}
+	population := []EvaluatedCortex{evaldCortex, fitOpponent}
 
 	opponents := pt.chooseRandomOpponents(cortex, population, 1)
 	assert.Equals(t, len(opponents), 1)
@@ -97,26 +97,26 @@ func TestSortByFitness(t *testing.T) {
 
 	pt := &PopulationTrainer{}
 
-	fitCortexHigh := FitCortex{Fitness: 100.0}
-	fitCortexLow := FitCortex{Fitness: -100.0}
-	population := []FitCortex{fitCortexLow, fitCortexHigh}
+	evaldCortexHigh := EvaluatedCortex{Fitness: 100.0}
+	evaldCortexLow := EvaluatedCortex{Fitness: -100.0}
+	population := []EvaluatedCortex{evaldCortexLow, evaldCortexHigh}
 
 	sortedPopulation := pt.sortByFitness(population)
 	assert.Equals(t, len(population), len(sortedPopulation))
-	assert.Equals(t, sortedPopulation[0], fitCortexHigh)
-	assert.Equals(t, sortedPopulation[1], fitCortexLow)
+	assert.Equals(t, sortedPopulation[0], evaldCortexHigh)
+	assert.Equals(t, sortedPopulation[1], evaldCortexLow)
 
 }
 
 func TestCullPopulation(t *testing.T) {
-	fitCortexHigh := FitCortex{Fitness: 100.0}
-	fitCortexLow := FitCortex{Fitness: -100.0}
-	population := []FitCortex{fitCortexLow, fitCortexHigh}
+	evaldCortexHigh := EvaluatedCortex{Fitness: 100.0}
+	evaldCortexLow := EvaluatedCortex{Fitness: -100.0}
+	population := []EvaluatedCortex{evaldCortexLow, evaldCortexHigh}
 
 	pt := &PopulationTrainer{}
 	culledPopulation := pt.cullPopulation(population)
 	assert.Equals(t, len(culledPopulation), 1)
-	assert.Equals(t, culledPopulation[0], fitCortexHigh)
+	assert.Equals(t, culledPopulation[0], evaldCortexHigh)
 
 }
 
@@ -136,15 +136,15 @@ func TestGenerateOffspring(t *testing.T) {
 	cortex1 := BasicCortex()
 	cortex2 := BasicCortex()
 
-	fitCortex1 := FitCortex{Fitness: 100.0, Cortex: cortex1}
-	fitCortex2 := FitCortex{Fitness: -100.0, Cortex: cortex2}
+	evaldCortex1 := EvaluatedCortex{Fitness: 100.0, Cortex: cortex1}
+	evaldCortex2 := EvaluatedCortex{Fitness: -100.0, Cortex: cortex2}
 
-	population := []FitCortex{fitCortex1, fitCortex2}
-	offspringPopulation := pt.generateOffspring(population, nil)
+	population := []EvaluatedCortex{evaldCortex1, evaldCortex2}
+	offspringPopulation := pt.generateOffspring(population)
 	assert.Equals(t, len(offspringPopulation), 2*len(population))
 
-	offspringFitCortex := offspringPopulation[3]
-	assert.Equals(t, offspringFitCortex.Fitness, 0.0)
-	assert.Equals(t, len(offspringFitCortex.Cortex.Sensors), 0)
+	offspringEvaluatedCortex := offspringPopulation[3]
+	assert.Equals(t, offspringEvaluatedCortex.Fitness, 0.0)
+	assert.Equals(t, len(offspringEvaluatedCortex.Cortex.Sensors), 0)
 
 }
