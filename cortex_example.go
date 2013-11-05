@@ -4,6 +4,46 @@ import (
 	ng "github.com/tleyden/neurgo"
 )
 
+func SingleNeuronCortex(uuid string) *ng.Cortex {
+
+	sensor := &ng.Sensor{
+		NodeId:       ng.NewSensorId("sensor", 0.0),
+		VectorLength: 1,
+	}
+	sensor.Init()
+
+	neuron := &ng.Neuron{
+		ActivationFunction: ng.EncodableIdentity(),
+		NodeId:             ng.NewNeuronId("neuron", 0.15),
+		Bias:               1,
+	}
+	neuron.Init()
+
+	actuator := &ng.Actuator{
+		NodeId:       ng.NewActuatorId("actuator", 0.5),
+		VectorLength: 1,
+	}
+	actuator.Init()
+
+	sensor.ConnectOutbound(neuron)
+	neuron.ConnectInboundWeighted(sensor, []float64{1})
+
+	neuron.ConnectOutbound(actuator)
+	actuator.ConnectInbound(neuron)
+
+	nodeId := ng.NewCortexId(uuid)
+
+	cortex := &ng.Cortex{
+		NodeId: nodeId,
+	}
+	cortex.SetSensors([]*ng.Sensor{sensor})
+	cortex.SetNeurons([]*ng.Neuron{neuron})
+	cortex.SetActuators([]*ng.Actuator{actuator})
+
+	return cortex
+
+}
+
 func BasicCortex() *ng.Cortex {
 
 	sensor := &ng.Sensor{
