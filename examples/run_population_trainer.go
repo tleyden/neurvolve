@@ -20,6 +20,7 @@ func RunPopulationTrainer() bool {
 		// CortexMutator:    nv.MutateAllWeightsBellCurve,
 		// CortexMutator: nv.MutateWeights,
 		CortexMutator: RandomNeuronMutator,
+		NumOpponents:  5,
 	}
 
 	population := getInitialPopulation()
@@ -56,7 +57,7 @@ func RunPopulationTrainer() bool {
 }
 
 func RandomNeuronMutator(cortex *ng.Cortex) (success bool, result nv.MutateResult) {
-	saturationBounds := []float64{-2 * math.Pi, 2 * math.Pi}
+	saturationBounds := []float64{-100 * math.Pi, 100 * math.Pi}
 	nv.PerturbParameters(cortex, saturationBounds)
 	success = true
 	result = "nothing"

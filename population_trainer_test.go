@@ -10,13 +10,63 @@ import (
 func init() {
 	logg.LogKeys["MAIN"] = true
 	logg.LogKeys["DEBUG"] = true
-	logg.LogKeys["NEURGO"] = true
-	logg.LogKeys["SENSOR_SYNC"] = true
-	logg.LogKeys["ACTUATOR_SYNC"] = true
-	logg.LogKeys["NODE_PRE_SEND"] = true
-	logg.LogKeys["NODE_POST_SEND"] = true
-	logg.LogKeys["NODE_POST_RECV"] = true
-	logg.LogKeys["NODE_STATE"] = true
+	logg.LogKeys["TEST"] = true
+	logg.LogKeys["NEURGO"] = false
+	logg.LogKeys["SENSOR_SYNC"] = false
+	logg.LogKeys["ACTUATOR_SYNC"] = false
+	logg.LogKeys["NODE_PRE_SEND"] = false
+	logg.LogKeys["NODE_POST_SEND"] = false
+	logg.LogKeys["NODE_POST_RECV"] = false
+	logg.LogKeys["NODE_STATE"] = false
+}
+
+func TestTrain(t *testing.T) {
+
+	fakeCortexMutator := func(cortex *ng.Cortex) (success bool, result MutateResult) {
+		for _, neuron := range cortex.Neurons {
+			neuron.Bias += 1
+		}
+		result = "nothing"
+		success = true
+		return
+	}
+
+	pt := &PopulationTrainer{
+		FitnessThreshold: 1000,
+		MaxGenerations:   1000000,
+		CortexMutator:    fakeCortexMutator,
+		NumOpponents:     1,
+	}
+
+	cortex1 := SingleNeuronCortex("cortex1")
+	cortex2 := SingleNeuronCortex("cortex2")
+
+	population := []*ng.Cortex{cortex1, cortex2}
+
+	// inputs + expected outputs
+	examples := []*ng.TrainingSample{
+		{SampleInputs: [][]float64{[]float64{1}},
+			ExpectedOutputs: [][]float64{[]float64{100}}},
+	}
+
+	scape := FakeScapeTwoPlayer{
+		examples: examples,
+	}
+	trainedPopulation, succeeded := pt.Train(population, scape)
+	logg.LogTo("TEST", "succeeded: %v", succeeded)
+	logg.LogTo("TEST", "trainedPopulation: %v", trainedPopulation)
+
+}
+
+type FakeScapeTwoPlayer struct {
+	examples []*ng.TrainingSample
+}
+
+func (scape FakeScapeTwoPlayer) Fitness(cortex *ng.Cortex, opponent *ng.Cortex) float64 {
+	cortexFitness := cortex.Fitness(scape.examples)
+	logg.LogTo("TEST", "getting fitness of cortex: %v", cortex)
+	logg.LogTo("TEST", "cortexFitness: %v", cortexFitness)
+	return cortexFitness
 }
 
 func TestChooseRandomOpponents(t *testing.T) {
@@ -24,8 +74,18 @@ func TestChooseRandomOpponents(t *testing.T) {
 	pt := &PopulationTrainer{}
 
 	cortex := BasicCortex()
+	fitCortex := FitCortex{
+		Cortex:  cortex,
+		Fitness: 0.0,
+	}
+
 	opponent := BasicCortex()
-	population := []*ng.Cortex{cortex, opponent}
+	fitOpponent := FitCortex{
+		Cortex:  opponent,
+		Fitness: 0.0,
+	}
+
+	population := []FitCortex{fitCortex, fitOpponent}
 
 	opponents := pt.chooseRandomOpponents(cortex, population, 1)
 	assert.Equals(t, len(opponents), 1)
@@ -80,7 +140,7 @@ func TestGenerateOffspring(t *testing.T) {
 	fitCortex2 := FitCortex{Fitness: -100.0, Cortex: cortex2}
 
 	population := []FitCortex{fitCortex1, fitCortex2}
-	offspringPopulation := pt.generateOffspring(population)
+	offspringPopulation := pt.generateOffspring(population, nil)
 	assert.Equals(t, len(offspringPopulation), 2*len(population))
 
 	offspringFitCortex := offspringPopulation[3]
