@@ -16,7 +16,7 @@ func TestPerturbParameters(t *testing.T) {
 	nnJsonString := fmt.Sprintf("%s", nnJson)
 
 	saturationBounds := []float64{-100000, 10000}
-	perturbParameters(cortex, saturationBounds)
+	PerturbParameters(cortex, saturationBounds)
 
 	nnJsonAfter, _ := json.Marshal(cortex)
 	nnJsonStringAfter := fmt.Sprintf("%s", nnJsonAfter)
