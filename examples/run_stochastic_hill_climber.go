@@ -25,8 +25,8 @@ func RunStochasticHillClimber() {
 
 	shc := &nv.StochasticHillClimber{
 		FitnessThreshold:           ng.FITNESS_THRESHOLD,
-		MaxIterationsBeforeRestart: 100000,
-		MaxAttempts:                10,
+		MaxIterationsBeforeRestart: 2000,
+		MaxAttempts:                2000,
 		WeightSaturationRange:      []float64{-100 * math.Pi, 100 * math.Pi},
 	}
 	cortexTrained, succeeded := shc.TrainExamples(cortex, examples)
