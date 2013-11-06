@@ -13,7 +13,7 @@ type PopulationTrainer struct {
 	NumOpponents     int
 }
 
-func (pt *PopulationTrainer) Train(population []*ng.Cortex, scape ScapeTwoPlayer) (trainedPopulation []EvaluatedCortex, succeeded bool) {
+func (pt *PopulationTrainer) Train(population []*ng.Cortex, scape Scape) (trainedPopulation []EvaluatedCortex, succeeded bool) {
 
 	evaldCortexes := pt.addEmptyFitnessScores(population)
 
@@ -53,19 +53,30 @@ func (pt *PopulationTrainer) addEmptyFitnessScores(population []*ng.Cortex) (eva
 
 }
 
-func (pt *PopulationTrainer) computeFitness(population []EvaluatedCortex, scape ScapeTwoPlayer) (evaldCortexes []EvaluatedCortex) {
+func (pt *PopulationTrainer) computeFitness(population []EvaluatedCortex, scape Scape) (evaldCortexes []EvaluatedCortex) {
 
 	evaldCortexes = make([]EvaluatedCortex, len(population))
 	for i, evaldCortex := range population {
 		cortex := evaldCortex.Cortex
-		opponents := pt.chooseRandomOpponents(cortex, population, pt.NumOpponents)
-		fitnessScores := make([]float64, len(opponents))
-		for j, opponent := range opponents {
-			fitnessScores[j] = scape.Fitness(cortex, opponent)
+
+		averageFitness := 0.0
+		if pt.NumOpponents > 0 {
+
+			opponents := pt.chooseRandomOpponents(cortex, population, pt.NumOpponents)
+
+			fitnessScores := make([]float64, len(opponents))
+			for j, opponent := range opponents {
+				fitnessScores[j] = scape.FitnessAgainst(cortex, opponent)
+			}
+			averageFitness = ng.Average(fitnessScores)
+
+		} else {
+			averageFitness = scape.Fitness(cortex)
 		}
+
 		evaldCortexUpdated := EvaluatedCortex{
 			Cortex:  cortex,
-			Fitness: ng.Average(fitnessScores),
+			Fitness: averageFitness,
 		}
 		evaldCortexes[i] = evaldCortexUpdated
 	}

@@ -68,7 +68,7 @@ type XnorScapeTwoPlayer struct {
 	examples []*ng.TrainingSample
 }
 
-func (scape XnorScapeTwoPlayer) Fitness(cortex *ng.Cortex, opponent *ng.Cortex) float64 {
+func (scape XnorScapeTwoPlayer) FitnessAgainst(cortex *ng.Cortex, opponent *ng.Cortex) float64 {
 	cortexFitness := cortex.Fitness(scape.examples)
 	opponentFitness := opponent.Fitness(scape.examples)
 	logg.LogTo("DEBUG", "Cortex fitness: %v vs. Opponent: %v", cortexFitness, opponentFitness)
@@ -76,7 +76,12 @@ func (scape XnorScapeTwoPlayer) Fitness(cortex *ng.Cortex, opponent *ng.Cortex) 
 	return cortexFitness
 }
 
-func getScape() nv.ScapeTwoPlayer {
+func (scape XnorScapeTwoPlayer) Fitness(cortex *ng.Cortex) float64 {
+	logg.LogPanic("Fitness not implemented")
+	return 0.0
+}
+
+func getScape() nv.Scape {
 	return XnorScapeTwoPlayer{
 		examples: ng.XnorTrainingSamples(),
 	}

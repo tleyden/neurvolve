@@ -35,7 +35,7 @@ func TestTrain(t *testing.T) {
 		FitnessThreshold: 1000,
 		MaxGenerations:   1000000,
 		CortexMutator:    fakeCortexMutator,
-		NumOpponents:     1,
+		NumOpponents:     0,
 	}
 
 	cortex1 := SingleNeuronCortex("cortex1")
@@ -62,7 +62,12 @@ type FakeScapeTwoPlayer struct {
 	examples []*ng.TrainingSample
 }
 
-func (scape FakeScapeTwoPlayer) Fitness(cortex *ng.Cortex, opponent *ng.Cortex) float64 {
+func (scape FakeScapeTwoPlayer) FitnessAgainst(cortex *ng.Cortex, opponent *ng.Cortex) float64 {
+	logg.LogPanic("FitnessAgainst not implemented")
+	return 0.0
+}
+
+func (scape FakeScapeTwoPlayer) Fitness(cortex *ng.Cortex) float64 {
 	cortexFitness := cortex.Fitness(scape.examples)
 	logg.LogTo("TEST", "getting fitness of cortex: %v", cortex)
 	logg.LogTo("TEST", "cortexFitness: %v", cortexFitness)
