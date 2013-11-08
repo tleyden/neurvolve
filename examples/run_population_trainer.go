@@ -9,6 +9,21 @@ import (
 	"time"
 )
 
+func RunPopulationTrainerLoop(maxIterations int) bool {
+	for i := 0; i < maxIterations; i++ {
+		succeeded := RunPopulationTrainer()
+		if !succeeded {
+			logg.LogTo("MAIN", "Population trainer succeeded %d times and then failed this time", i)
+			return false
+		} else {
+			logg.LogTo("MAIN", "Population trainer succeeded %d times", i)
+
+		}
+	}
+	logg.LogTo("MAIN", "Population succeeded %d times", maxIterations)
+	return true
+}
+
 func RunPopulationTrainer() bool {
 
 	ng.SeedRandom()
@@ -16,11 +31,11 @@ func RunPopulationTrainer() bool {
 	// create population trainer ...
 	pt := &nv.PopulationTrainer{
 		FitnessThreshold: ng.FITNESS_THRESHOLD,
-		MaxGenerations:   1000000,
-		// CortexMutator:    nv.MutateAllWeightsBellCurve,
+		MaxGenerations:   1000,
+		CortexMutator:    nv.MutateAllWeightsBellCurve,
 		// CortexMutator: nv.MutateWeights,
-		CortexMutator: RandomNeuronMutator,
-		NumOpponents:  5,
+		// CortexMutator: RandomNeuronMutator,
+		NumOpponents: 5,
 	}
 
 	population := getInitialPopulation()
@@ -57,6 +72,8 @@ func RunPopulationTrainer() bool {
 }
 
 func RandomNeuronMutator(cortex *ng.Cortex) (success bool, result nv.MutateResult) {
+	// -6pi <-> 6pi or anything lower doesn't work ..
+	// -8pi <-> 8pi works but gets stuck sometimes
 	saturationBounds := []float64{-100 * math.Pi, 100 * math.Pi}
 	nv.PerturbParameters(cortex, saturationBounds)
 	success = true
