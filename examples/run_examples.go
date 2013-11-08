@@ -16,11 +16,19 @@ func init() {
 // $ go build -v && go run run_examples.go run_stochastic_hill_climber.go run_topology_mutating_trainer.go
 func main() {
 
-	RunStochasticHillClimber()
+	// RunStochasticHillClimber()
 	// success := MultiRunTopologyMutatingTrainer()
-	success := RunTopologyMutatingTrainer()
+
+	/*
+		success := RunTopologyMutatingTrainer()
+		if !success {
+			logg.LogPanic("Failed to run example")
+		}
+	*/
+
+	success := RunPopulationTrainerLoop(1)
 	if !success {
-		logg.LogPanic("Failed to run example")
+		logg.LogPanic("Failed to run population trainer")
 	}
 
 }
