@@ -648,17 +648,19 @@ func MutateAllWeightsBellCurve(cortex *ng.Cortex) (success bool, result MutateRe
 			weights := inboundConnection.Weights
 			for k, weight := range weights {
 				newWeight := perturbParameterBellCurve(weight, stdDev)
-				logg.LogTo("DEBUG", "weight %v -> %v", weight, newWeight)
+				logg.LogTo("NEURVOLVE", "weight %v -> %v", weight, newWeight)
 
 				weights[k] = newWeight
 			}
 		}
 
 		newBias := perturbParameterBellCurve(neuron.Bias, stdDev)
-		logg.LogTo("DEBUG", "bias %v -> %v", neuron.Bias, newBias)
+		logg.LogTo("NEURVOLVE", "bias %v -> %v", neuron.Bias, newBias)
 		neuron.Bias = newBias
 
 	}
+
+	logg.LogTo("NEURVOLVE", "Mutated cortex: %v", cortex.NodeId.UUID)
 
 	success = true
 	result = "nothing"
