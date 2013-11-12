@@ -1,10 +1,18 @@
 package neurvolve
 
 import (
+	"expvar"
+	"fmt"
 	"github.com/couchbaselabs/logg"
 	ng "github.com/tleyden/neurgo"
 	"sort"
 )
+
+var expvarMap *expvar.Map
+
+func init() {
+	expvarMap = expvar.NewMap("main")
+}
 
 type PopulationTrainer struct {
 	CortexMutator    CortexMutator
@@ -43,6 +51,9 @@ func (pt *PopulationTrainer) addEmptyFitnessScores(population []*ng.Cortex) (eva
 
 	evaldPopulation = make([]EvaluatedCortex, 0)
 	for _, cortex := range population {
+
+		expvarMap.Set(cortex.NodeId.UUID, cortex)
+
 		evaldCortex := EvaluatedCortex{
 			Cortex:  cortex,
 			Fitness: 0.0,
@@ -79,6 +90,14 @@ func (pt *PopulationTrainer) computeFitness(population []EvaluatedCortex, scape 
 			Fitness: averageFitness,
 		}
 		evaldCortexes[i] = evaldCortexUpdated
+
+		val := fmt.Sprintf("%v", averageFitness)
+		key := fmt.Sprintf("%v:fitness", cortex.NodeId.UUID)
+
+		theVal := &expvar.String{}
+		theVal.Set(val)
+		expvarMap.Set(key, theVal)
+
 	}
 
 	evaldCortexes = pt.sortByFitness(evaldCortexes)
@@ -158,6 +177,8 @@ func (pt *PopulationTrainer) generateOffspring(population []EvaluatedCortex) (wi
 		if !succeeded {
 			logg.LogPanic("Unable to mutate cortex: %v", offspringCortex)
 		}
+
+		expvarMap.Set(offspringCortex.NodeId.UUID, offspringCortex)
 
 		evaldCortexOffspring := EvaluatedCortex{
 			Cortex:  offspringCortex,
