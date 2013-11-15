@@ -192,3 +192,12 @@ func (pt *PopulationTrainer) generateOffspring(population []EvaluatedCortex) (wi
 	return
 
 }
+
+func (pt *PopulationTrainer) dumpPopulationToLog(population []EvaluatedCortex) {
+
+	for _, evaluatedCortex := range population {
+		msg := fmt.Sprintf("%v f: %v", evaluatedCortex.Cortex.ExtraCompact(), evaluatedCortex.Fitness)
+		logg.LogTo("NEURVOLVE", msg)
+	}
+
+}
