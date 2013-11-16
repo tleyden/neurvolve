@@ -173,6 +173,10 @@ func (pt *PopulationTrainer) generateOffspring(population []EvaluatedCortex) (wi
 
 		cortex := evaldCortex.Cortex
 		offspringCortex := cortex.Copy()
+
+		offspringNodeIdStr := fmt.Sprintf("cortex-%s", ng.NewUuid())
+		offspringCortex.NodeId = ng.NewCortexId(offspringNodeIdStr)
+
 		succeeded, _ := pt.CortexMutator(offspringCortex)
 		if !succeeded {
 			logg.LogPanic("Unable to mutate cortex: %v", offspringCortex)
