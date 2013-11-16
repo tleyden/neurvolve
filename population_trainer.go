@@ -52,13 +52,16 @@ func (pt *PopulationTrainer) addEmptyFitnessScores(population []*ng.Cortex) (eva
 	evaldPopulation = make([]EvaluatedCortex, 0)
 	for _, cortex := range population {
 
-		expvarMap.Set(cortex.NodeId.UUID, cortex)
+		// expvarMap.Set(cortex.NodeId.UUID, cortex)
 
 		evaldCortex := EvaluatedCortex{
 			Cortex:  cortex,
 			Fitness: 0.0,
 		}
 		evaldPopulation = append(evaldPopulation, evaldCortex)
+
+		pt.recordFitness(cortex, 0.0)
+
 	}
 	return
 
@@ -91,18 +94,23 @@ func (pt *PopulationTrainer) computeFitness(population []EvaluatedCortex, scape 
 		}
 		evaldCortexes[i] = evaldCortexUpdated
 
-		val := fmt.Sprintf("%v", averageFitness)
-		key := fmt.Sprintf("%v:fitness", cortex.NodeId.UUID)
-
-		theVal := &expvar.String{}
-		theVal.Set(val)
-		expvarMap.Set(key, theVal)
+		pt.recordFitness(cortex, averageFitness)
 
 	}
 
 	evaldCortexes = pt.sortByFitness(evaldCortexes)
 
 	return
+}
+
+func (pt *PopulationTrainer) recordFitness(cortex *ng.Cortex, fitness float64) {
+	val := fmt.Sprintf("%v", fitness)
+	key := fmt.Sprintf("%v:fitness", cortex.NodeId.UUID)
+
+	theVal := &expvar.String{}
+	theVal.Set(val)
+	expvarMap.Set(key, theVal)
+
 }
 
 func (pt *PopulationTrainer) chooseRandomOpponents(cortex *ng.Cortex, population []EvaluatedCortex, numOpponents int) (opponents []*ng.Cortex) {
@@ -182,7 +190,7 @@ func (pt *PopulationTrainer) generateOffspring(population []EvaluatedCortex) (wi
 			logg.LogPanic("Unable to mutate cortex: %v", offspringCortex)
 		}
 
-		expvarMap.Set(offspringCortex.NodeId.UUID, offspringCortex)
+		// expvarMap.Set(offspringCortex.NodeId.UUID, offspringCortex)
 
 		evaldCortexOffspring := EvaluatedCortex{
 			Cortex:  offspringCortex,
