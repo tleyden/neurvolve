@@ -4,6 +4,7 @@ import (
 	"github.com/couchbaselabs/logg"
 	ng "github.com/tleyden/neurgo"
 	"log"
+	"math"
 )
 
 type OutboundChooser func(*ng.Neuron) *ng.OutboundConnection
@@ -663,6 +664,45 @@ func MutateAllWeightsBellCurve(cortex *ng.Cortex) (success bool, result MutateRe
 	logg.LogTo("NEURVOLVE", "Mutated cortex: %v", cortex.NodeId.UUID)
 
 	success = true
+	result = "nothing"
+	return
+}
+
+func TopologyOrWeightMutator(cortex *ng.Cortex) (success bool, result MutateResult) {
+
+	randomNumber := ng.RandomIntInRange(0, 100)
+	if randomNumber > 95 {
+		logg.LogTo("NEURVOLVE", "Attempting to mutate topology")
+
+		// before we mutate the cortex, we need to init it,
+		// otherwise things like Outsplice will fail because
+		// there are no DataChan's.
+		cortex.Init()
+
+		// apply topological mutation
+		didMutate := false
+		includeNonTopological := false
+		mutators := CortexMutatorsNonRecurrent(includeNonTopological)
+		for i := 0; i <= 100; i++ {
+			randInt := RandomIntInRange(0, len(mutators))
+			mutator := mutators[randInt]
+			didMutate, _ = mutator(cortex)
+			if !didMutate {
+				logg.LogTo("NEURVOLVE", "Mutate didn't work, retrying...")
+				continue
+			}
+			break
+		}
+		logg.LogTo("NEURVOLVE", "did mutate: %v", didMutate)
+		success = didMutate
+	} else {
+		logg.LogTo("NEURVOLVE", "Attempting to mutate weights")
+		// mutate the weights
+		saturationBounds := []float64{-10 * math.Pi, 10 * math.Pi}
+		PerturbParameters(cortex, saturationBounds)
+		success = true
+	}
+
 	result = "nothing"
 	return
 }
