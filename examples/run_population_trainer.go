@@ -32,10 +32,11 @@ func RunPopulationTrainer() bool {
 	pt := &nv.PopulationTrainer{
 		FitnessThreshold: ng.FITNESS_THRESHOLD,
 		MaxGenerations:   1000,
-		CortexMutator:    nv.MutateAllWeightsBellCurve,
+		// CortexMutator:    nv.MutateAllWeightsBellCurve,
 		// CortexMutator: nv.MutateWeights,
 		// CortexMutator: RandomNeuronMutator,
-		NumOpponents: 5,
+		CortexMutator: nv.TopologyOrWeightMutator,
+		NumOpponents:  5,
 	}
 
 	population := getInitialPopulation()
