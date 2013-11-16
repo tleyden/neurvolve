@@ -9,7 +9,7 @@ import (
 
 func init() {
 	logg.LogKeys["MAIN"] = true
-	logg.LogKeys["DEBUG"] = true
+	logg.LogKeys["DEBUG"] = false
 	logg.LogKeys["TEST"] = true
 	logg.LogKeys["NEURGO"] = false
 	logg.LogKeys["SENSOR_SYNC"] = false
