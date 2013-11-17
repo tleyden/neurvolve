@@ -14,3 +14,11 @@ func (population CortexPopulation) Find(uuid string) *ng.Cortex {
 	}
 	return nil
 }
+
+func (population CortexPopulation) Uuids() []string {
+	uuids := make([]string, 0)
+	for _, cortex := range population {
+		uuids = append(uuids, cortex.NodeId.UUID)
+	}
+	return uuids
+}
