@@ -15,10 +15,11 @@ func init() {
 }
 
 type PopulationTrainer struct {
-	CortexMutator    CortexMutator
-	FitnessThreshold float64
-	MaxGenerations   int
-	NumOpponents     int
+	CortexMutator       CortexMutator
+	FitnessThreshold    float64
+	MaxGenerations      int
+	NumOpponents        int
+	SnapshotRequestChan chan chan EvaluatedCortexes
 }
 
 func (pt *PopulationTrainer) Train(population []*ng.Cortex, scape Scape) (trainedPopulation []EvaluatedCortex, succeeded bool) {
@@ -26,6 +27,8 @@ func (pt *PopulationTrainer) Train(population []*ng.Cortex, scape Scape) (traine
 	evaldCortexes := pt.addEmptyFitnessScores(population)
 
 	for i := 0; i < pt.MaxGenerations; i++ {
+
+		pt.publishSnapshot(evaldCortexes)
 
 		evaldCortexes = pt.computeFitness(evaldCortexes, scape)
 		logg.LogTo("MAIN", "Highest fitness after generation %d: %v", i, evaldCortexes[0].Fitness)
@@ -47,12 +50,35 @@ func (pt *PopulationTrainer) Train(population []*ng.Cortex, scape Scape) (traine
 
 }
 
+func (pt *PopulationTrainer) publishSnapshot(evaldPopulation EvaluatedCortexes) {
+	select {
+	case responseChan := <-pt.SnapshotRequestChan:
+		evaldPopulationCopy := make(EvaluatedCortexes, 0)
+		// copy(evaldPopulationCopy, evaldPopulation)
+		for _, evaldCortex := range evaldPopulation {
+			evaldCortexCopy := EvaluatedCortex{
+				Fitness: evaldCortex.Fitness,
+				Cortex:  evaldCortex.Cortex.Copy(),
+			}
+			evaldPopulationCopy = append(evaldPopulationCopy, evaldCortexCopy)
+		}
+		responseChan <- evaldPopulationCopy
+	default:
+		// do nothing
+		logg.LogTo("MAIN", "do nothing")
+	}
+}
+
+func (pt *PopulationTrainer) GetPopulationSnapshot() EvaluatedCortexes {
+	responseChan := make(chan EvaluatedCortexes)
+	pt.SnapshotRequestChan <- responseChan
+	return <-responseChan
+}
+
 func (pt *PopulationTrainer) addEmptyFitnessScores(population []*ng.Cortex) (evaldPopulation []EvaluatedCortex) {
 
 	evaldPopulation = make([]EvaluatedCortex, 0)
 	for _, cortex := range population {
-
-		// expvarMap.Set(cortex.NodeId.UUID, cortex)
 
 		evaldCortex := EvaluatedCortex{
 			Cortex:  cortex,
@@ -60,7 +86,7 @@ func (pt *PopulationTrainer) addEmptyFitnessScores(population []*ng.Cortex) (eva
 		}
 		evaldPopulation = append(evaldPopulation, evaldCortex)
 
-		pt.recordFitness(cortex, 0.0)
+		pt.recordInExpVarMap(cortex, 0.0)
 
 	}
 	return
@@ -94,7 +120,7 @@ func (pt *PopulationTrainer) computeFitness(population []EvaluatedCortex, scape 
 		}
 		evaldCortexes[i] = evaldCortexUpdated
 
-		pt.recordFitness(cortex, averageFitness)
+		pt.recordInExpVarMap(cortex, averageFitness)
 
 	}
 
@@ -103,7 +129,7 @@ func (pt *PopulationTrainer) computeFitness(population []EvaluatedCortex, scape 
 	return
 }
 
-func (pt *PopulationTrainer) recordFitness(cortex *ng.Cortex, fitness float64) {
+func (pt *PopulationTrainer) recordInExpVarMap(cortex *ng.Cortex, fitness float64) {
 	val := fmt.Sprintf("%v", fitness)
 	key := fmt.Sprintf("%v:fitness", cortex.NodeId.UUID)
 
@@ -136,7 +162,7 @@ func (pt *PopulationTrainer) chooseRandomOpponents(cortex *ng.Cortex, population
 
 }
 
-func (pt *PopulationTrainer) sortByFitness(population EvaluatedCortexArray) (sortedPopulation []EvaluatedCortex) {
+func (pt *PopulationTrainer) sortByFitness(population EvaluatedCortexes) (sortedPopulation []EvaluatedCortex) {
 	sort.Sort(population)
 	sortedPopulation = population
 	return

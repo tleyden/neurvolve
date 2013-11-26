@@ -35,11 +35,13 @@ func RunPopulationTrainer() bool {
 		// CortexMutator:    nv.MutateAllWeightsBellCurve,
 		// CortexMutator: nv.MutateWeights,
 		// CortexMutator: RandomNeuronMutator,
-		CortexMutator: nv.TopologyOrWeightMutator,
-		NumOpponents:  5,
+		CortexMutator:       nv.TopologyOrWeightMutator,
+		NumOpponents:        5,
+		SnapshotRequestChan: make(chan chan nv.EvaluatedCortexes),
 	}
 
 	population := getInitialPopulation()
+	nv.RegisterHandlers(pt)
 	scape := getScape()
 
 	fitPopulation, succeeded := pt.Train(population, scape)

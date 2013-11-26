@@ -32,7 +32,8 @@ func main() {
 		}
 	*/
 
-	success := RunPopulationTrainerLoop(150)
+	// success := RunPopulationTrainerLoop(150)
+	success := RunPopulationTrainer()
 	if !success {
 		logg.LogFatal("Failed to run population trainer")
 	}
