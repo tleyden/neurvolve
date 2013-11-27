@@ -10,8 +10,22 @@ import (
 )
 
 func RunPopulationTrainerLoop(maxIterations int) bool {
+
+	// create population trainer ...
+	pt := &nv.PopulationTrainer{
+		FitnessThreshold: ng.FITNESS_THRESHOLD,
+		MaxGenerations:   1000,
+		// CortexMutator:    nv.MutateAllWeightsBellCurve,
+		// CortexMutator: nv.MutateWeights,
+		CortexMutator: RandomNeuronMutator,
+		// CortexMutator:       nv.TopologyOrWeightMutator,
+		NumOpponents:        5,
+		SnapshotRequestChan: make(chan chan nv.EvaluatedCortexes),
+	}
+	nv.RegisterHandlers(pt)
+
 	for i := 0; i < maxIterations; i++ {
-		succeeded := RunPopulationTrainer()
+		succeeded := RunPopulationTrainer(pt)
 		if !succeeded {
 			logg.LogTo("MAIN", "Population trainer succeeded %d times and then failed this time", i)
 			return false
@@ -24,24 +38,9 @@ func RunPopulationTrainerLoop(maxIterations int) bool {
 	return true
 }
 
-func RunPopulationTrainer() bool {
-
-	ng.SeedRandom()
-
-	// create population trainer ...
-	pt := &nv.PopulationTrainer{
-		FitnessThreshold: ng.FITNESS_THRESHOLD,
-		MaxGenerations:   1000,
-		// CortexMutator:    nv.MutateAllWeightsBellCurve,
-		// CortexMutator: nv.MutateWeights,
-		// CortexMutator: RandomNeuronMutator,
-		CortexMutator:       nv.TopologyOrWeightMutator,
-		NumOpponents:        5,
-		SnapshotRequestChan: make(chan chan nv.EvaluatedCortexes),
-	}
+func RunPopulationTrainer(pt *nv.PopulationTrainer) bool {
 
 	population := getInitialPopulation()
-	nv.RegisterHandlers(pt)
 	scape := getScape()
 
 	fitPopulation, succeeded := pt.Train(population, scape)
