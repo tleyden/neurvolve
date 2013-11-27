@@ -1,17 +1,13 @@
 package neurvolve
 
 import (
-	"expvar"
 	"fmt"
 	"github.com/couchbaselabs/logg"
 	ng "github.com/tleyden/neurgo"
 	"sort"
 )
 
-var expvarMap *expvar.Map
-
 func init() {
-	expvarMap = expvar.NewMap("main")
 }
 
 type PopulationTrainer struct {
@@ -54,7 +50,6 @@ func (pt *PopulationTrainer) publishSnapshot(evaldPopulation EvaluatedCortexes) 
 	select {
 	case responseChan := <-pt.SnapshotRequestChan:
 		evaldPopulationCopy := make(EvaluatedCortexes, 0)
-		// copy(evaldPopulationCopy, evaldPopulation)
 		for _, evaldCortex := range evaldPopulation {
 			evaldCortexCopy := EvaluatedCortex{
 				Fitness: evaldCortex.Fitness,
@@ -64,8 +59,6 @@ func (pt *PopulationTrainer) publishSnapshot(evaldPopulation EvaluatedCortexes) 
 		}
 		responseChan <- evaldPopulationCopy
 	default:
-		// do nothing
-		logg.LogTo("MAIN", "do nothing")
 	}
 }
 
@@ -85,8 +78,6 @@ func (pt *PopulationTrainer) addEmptyFitnessScores(population []*ng.Cortex) (eva
 			Fitness: 0.0,
 		}
 		evaldPopulation = append(evaldPopulation, evaldCortex)
-
-		pt.recordInExpVarMap(cortex, 0.0)
 
 	}
 	return
@@ -120,23 +111,11 @@ func (pt *PopulationTrainer) computeFitness(population []EvaluatedCortex, scape 
 		}
 		evaldCortexes[i] = evaldCortexUpdated
 
-		pt.recordInExpVarMap(cortex, averageFitness)
-
 	}
 
 	evaldCortexes = pt.sortByFitness(evaldCortexes)
 
 	return
-}
-
-func (pt *PopulationTrainer) recordInExpVarMap(cortex *ng.Cortex, fitness float64) {
-	val := fmt.Sprintf("%v", fitness)
-	key := fmt.Sprintf("%v:fitness", cortex.NodeId.UUID)
-
-	theVal := &expvar.String{}
-	theVal.Set(val)
-	expvarMap.Set(key, theVal)
-
 }
 
 func (pt *PopulationTrainer) chooseRandomOpponents(cortex *ng.Cortex, population []EvaluatedCortex, numOpponents int) (opponents []*ng.Cortex) {
@@ -215,8 +194,6 @@ func (pt *PopulationTrainer) generateOffspring(population []EvaluatedCortex) (wi
 		if !succeeded {
 			logg.LogPanic("Unable to mutate cortex: %v", offspringCortex)
 		}
-
-		// expvarMap.Set(offspringCortex.NodeId.UUID, offspringCortex)
 
 		evaldCortexOffspring := EvaluatedCortex{
 			Cortex:  offspringCortex,
