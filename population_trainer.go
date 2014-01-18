@@ -18,15 +18,16 @@ type PopulationTrainer struct {
 	SnapshotRequestChan chan chan EvaluatedCortexes
 }
 
-func (pt *PopulationTrainer) Train(population []*ng.Cortex, scape Scape) (trainedPopulation []EvaluatedCortex, succeeded bool) {
+func (pt *PopulationTrainer) Train(population []*ng.Cortex, scape Scape, recorder Recorder) (trainedPopulation []EvaluatedCortex, succeeded bool) {
 
 	evaldCortexes := pt.addEmptyFitnessScores(population)
+	recorder.AddGeneration(evaldCortexes)
 
 	for i := 0; i < pt.MaxGenerations; i++ {
 
 		pt.publishSnapshot(evaldCortexes)
 
-		evaldCortexes = pt.computeFitness(evaldCortexes, scape)
+		evaldCortexes = pt.computeFitness(evaldCortexes, scape, recorder)
 		logg.LogTo("MAIN", "Highest fitness after generation %d: %v", i, evaldCortexes[0].Fitness)
 
 		if pt.exceededFitnessThreshold(evaldCortexes) {
@@ -38,6 +39,8 @@ func (pt *PopulationTrainer) Train(population []*ng.Cortex, scape Scape) (traine
 		evaldCortexes = pt.cullPopulation(evaldCortexes)
 
 		evaldCortexes = pt.generateOffspring(evaldCortexes)
+
+		recorder.AddGeneration(evaldCortexes)
 
 		trainedPopulation = evaldCortexes
 	}
@@ -84,7 +87,7 @@ func (pt *PopulationTrainer) addEmptyFitnessScores(population []*ng.Cortex) (eva
 
 }
 
-func (pt *PopulationTrainer) computeFitness(population []EvaluatedCortex, scape Scape) (evaldCortexes []EvaluatedCortex) {
+func (pt *PopulationTrainer) computeFitness(population []EvaluatedCortex, scape Scape, recorder Recorder) (evaldCortexes []EvaluatedCortex) {
 
 	evaldCortexes = make([]EvaluatedCortex, len(population))
 	for i, evaldCortex := range population {
@@ -97,7 +100,9 @@ func (pt *PopulationTrainer) computeFitness(population []EvaluatedCortex, scape 
 
 			fitnessScores := make([]float64, len(opponents))
 			for j, opponent := range opponents {
-				fitnessScores[j] = scape.FitnessAgainst(cortex, opponent)
+				score := scape.FitnessAgainst(cortex, opponent)
+				fitnessScores[j] = score
+				recorder.AddFitnessScore(score, cortex, opponent)
 			}
 			averageFitness = ng.Average(fitnessScores)
 

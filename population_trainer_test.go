@@ -52,7 +52,8 @@ func TestTrain(t *testing.T) {
 	scape := FakeScapeTwoPlayer{
 		examples: examples,
 	}
-	trainedPopulation, succeeded := pt.Train(population, scape)
+	recorder := NewNullRecorder()
+	trainedPopulation, succeeded := pt.Train(population, scape, recorder)
 	logg.LogTo("TEST", "succeeded: %v", succeeded)
 	logg.LogTo("TEST", "trainedPopulation: %v", trainedPopulation)
 
