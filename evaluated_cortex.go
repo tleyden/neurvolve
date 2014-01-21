@@ -5,10 +5,12 @@ import (
 	ng "github.com/tleyden/neurgo"
 )
 
-// A Cortex along with a fitness evaluation
+// A Cortex along with other data
 type EvaluatedCortex struct {
-	Cortex  *ng.Cortex
-	Fitness float64
+	Cortex              *ng.Cortex
+	Fitness             float64
+	ParentId            string
+	CreatedInGeneration int
 }
 
 type EvaluatedCortexes []EvaluatedCortex

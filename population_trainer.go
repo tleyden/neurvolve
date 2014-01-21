@@ -14,6 +14,7 @@ type PopulationTrainer struct {
 	CortexMutator       CortexMutator
 	FitnessThreshold    float64
 	MaxGenerations      int
+	CurrentGeneration   int
 	NumOpponents        int
 	SnapshotRequestChan chan chan EvaluatedCortexes
 }
@@ -25,6 +26,7 @@ func (pt *PopulationTrainer) Train(population []*ng.Cortex, scape Scape, recorde
 
 	for i := 0; i < pt.MaxGenerations; i++ {
 
+		pt.CurrentGeneration = i
 		pt.publishSnapshot(evaldCortexes)
 
 		evaldCortexes = pt.computeFitness(evaldCortexes, scape, recorder)
@@ -201,8 +203,10 @@ func (pt *PopulationTrainer) generateOffspring(population []EvaluatedCortex) (wi
 		}
 
 		evaldCortexOffspring := EvaluatedCortex{
-			Cortex:  offspringCortex,
-			Fitness: 0.0,
+			Cortex:              offspringCortex,
+			ParentId:            cortex.NodeId.UUID,
+			CreatedInGeneration: pt.CurrentGeneration,
+			Fitness:             0.0,
 		}
 
 		withOffspring = append(withOffspring, evaldCortexOffspring)
