@@ -15,9 +15,9 @@ func RunPopulationTrainerLoop(maxIterations int) bool {
 	pt := &nv.PopulationTrainer{
 		FitnessThreshold: ng.FITNESS_THRESHOLD,
 		MaxGenerations:   1000,
-		// CortexMutator:    nv.MutateAllWeightsBellCurve,
+		CortexMutator:    nv.MutateAllWeightsBellCurve,
 		// CortexMutator: nv.MutateWeights,
-		CortexMutator: RandomNeuronMutator,
+		// CortexMutator: RandomNeuronMutator,
 		// CortexMutator:       nv.TopologyOrWeightMutator,
 		NumOpponents:        5,
 		SnapshotRequestChan: make(chan chan nv.EvaluatedCortexes),
