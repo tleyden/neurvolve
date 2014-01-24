@@ -70,8 +70,6 @@ func (scape FakeScapeTwoPlayer) FitnessAgainst(cortex *ng.Cortex, opponent *ng.C
 
 func (scape FakeScapeTwoPlayer) Fitness(cortex *ng.Cortex) float64 {
 	cortexFitness := cortex.Fitness(scape.examples)
-	logg.LogTo("TEST", "getting fitness of cortex: %v", cortex)
-	logg.LogTo("TEST", "cortexFitness: %v", cortexFitness)
 	return cortexFitness
 }
 

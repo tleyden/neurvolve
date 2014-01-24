@@ -30,7 +30,6 @@ func (pt *PopulationTrainer) Train(population []*ng.Cortex, scape Scape, recorde
 		pt.publishSnapshot(evaldCortexes)
 
 		evaldCortexes = pt.computeFitness(evaldCortexes, scape, recorder)
-		logg.LogTo("MAIN", "Highest fitness after generation %d: %v", i, evaldCortexes[0].Fitness)
 
 		if pt.exceededFitnessThreshold(evaldCortexes) {
 			succeeded = true

@@ -136,7 +136,6 @@ func AddNeuronRecurrent(cortex *ng.Cortex) (bool, MutateResult) {
 		}
 
 		if randomLayer == inboundNodeId.LayerIndex {
-			logg.LogTo("NEURVOLVE", "skipping inbound node since it's in the same layer")
 			continue
 		}
 
@@ -154,7 +153,6 @@ func AddNeuronRecurrent(cortex *ng.Cortex) (bool, MutateResult) {
 		neuronAddInlinkFrom(neuron, inboundNodeId)
 		neuronAddOutlinkTo(neuron, outboundNodeId)
 
-		logg.LogTo("NEURVOLVE", "return true, %v", neuron)
 		return true, neuron
 
 	}
