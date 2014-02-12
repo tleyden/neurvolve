@@ -78,8 +78,9 @@ func (pt *PopulationTrainer) addEmptyFitnessScores(population []*ng.Cortex) (eva
 	for _, cortex := range population {
 
 		evaldCortex := EvaluatedCortex{
-			Cortex:  cortex,
-			Fitness: 0.0,
+			Cortex:   cortex,
+			ParentId: cortex.NodeId.UUID, // no parent, set to self
+			Fitness:  0.0,
 		}
 		evaldPopulation = append(evaldPopulation, evaldCortex)
 
@@ -112,8 +113,9 @@ func (pt *PopulationTrainer) computeFitness(population []EvaluatedCortex, scape 
 		}
 
 		evaldCortexUpdated := EvaluatedCortex{
-			Cortex:  cortex,
-			Fitness: averageFitness,
+			Cortex:   cortex,
+			ParentId: evaldCortex.ParentId,
+			Fitness:  averageFitness,
 		}
 		evaldCortexes[i] = evaldCortexUpdated
 

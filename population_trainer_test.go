@@ -64,7 +64,6 @@ type FakeScapeTwoPlayer struct {
 }
 
 func (scape FakeScapeTwoPlayer) FitnessAgainst(cortex *ng.Cortex, opponent *ng.Cortex) float64 {
-	logg.LogPanic("FitnessAgainst not implemented")
 	return 0.0
 }
 
@@ -150,5 +149,53 @@ func TestGenerateOffspring(t *testing.T) {
 	offspringEvaluatedCortex := offspringPopulation[3]
 	assert.Equals(t, offspringEvaluatedCortex.Fitness, 0.0)
 	assert.Equals(t, len(offspringEvaluatedCortex.Cortex.Sensors), 0)
+
+}
+
+// Regression test for issue in which evaldcortexes didn't have correct parents
+func TestRetainParent(t *testing.T) {
+
+	fakeCortexMutator := func(cortex *ng.Cortex) (success bool, result MutateResult) {
+		for _, neuron := range cortex.Neurons {
+			neuron.Bias += 1
+		}
+		result = "nothing"
+		success = true
+		return
+	}
+
+	pt := &PopulationTrainer{
+		FitnessThreshold: 1000,
+		MaxGenerations:   1000000,
+		CortexMutator:    fakeCortexMutator,
+		NumOpponents:     0,
+	}
+
+	cortex1 := SingleNeuronCortex("cortex1")
+
+	cortexes := []*ng.Cortex{cortex1}
+	population := pt.addEmptyFitnessScores(cortexes)
+
+	// at this point, all evaldcortexes should have parentid == self
+	for _, evaldCortex := range population {
+		assert.Equals(t, evaldCortex.ParentId, evaldCortex.Cortex.NodeId.UUID)
+	}
+
+	scape := FakeScapeTwoPlayer{}
+
+	population = pt.generateOffspring(population)
+
+	// all evaldcortexes should have parentid == "cortex1"
+	for _, evaldCortex := range population {
+		assert.Equals(t, evaldCortex.ParentId, "cortex1")
+	}
+
+	recorder := NullRecorder{}
+	population = pt.computeFitness(population, scape, recorder)
+
+	// all evaldcortexes should have parentid == "cortex1"
+	for _, evaldCortex := range population {
+		assert.Equals(t, evaldCortex.ParentId, "cortex1")
+	}
 
 }
